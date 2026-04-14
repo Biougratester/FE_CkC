@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinker Twin // Ciments du Maroc :: Expert System</title>
+    <title>Clinker Cooler Digital twin</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Arial:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -149,8 +149,8 @@
         </div>
         <div class="api-status">
             <select id="server-select" class="hmi-select" onchange="changeServer(this.value)">
-                <option value="http://127.0.0.1:5000/api/v1"> LOCALHOST (DEV)</option>
-                <option value="http://10.0.0.50:5000/api/v1"> SERVEUR USINE (PROD)</option>
+                <option value="https://expertsys-vlbi.onrender.com/api/v1"> LOCALHOST (DEV)</option>
+                <option value="https://expertsys-vlbi.onrender.com/api/v1"> SERVEUR USINE (PROD)</option>
                 <option value="custom">URL PERSONNALISÉE...</option>
             </select>
             LINK: <span id="link-status">OFFLINE</span>
@@ -213,8 +213,8 @@
                                 </tr>
                                 <tr>
                                     <td style="font-weight: bold;">XGBoost</td>
-                                    <td><input type="number" id="w_temp_xgboost" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                    <td><input type="number" id="w_pow_xgboost" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
+                                    <td><input type="number" id="w_temp_xgboost" value="0.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
+                                    <td><input type="number" id="w_pow_xgboost" value="0.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
                                 </tr>
                                 <tr>
                                     <td style="font-weight: bold;">R. Forest</td>
@@ -485,7 +485,7 @@
 
     <script>
         // --- GESTION DU SERVEUR ---
-        let API_BASE = localStorage.getItem('cimar_api_url') || 'http://127.0.0.1:5000/api/v1';
+        let API_BASE = localStorage.getItem('cimar_api_url') || 'https://expertsys-vlbi.onrender.com/api/v1';
 
         function initServerDropdown() {
             const select = document.getElementById('server-select');
@@ -495,7 +495,7 @@
             }
             if (!found && API_BASE) {
                 const opt = document.createElement('option');
-                opt.value = API_BASE; opt.text = "🌐 " + API_BASE;
+                opt.value = API_BASE; opt.text = "--" + API_BASE;
                 select.add(opt, select.options[2]); select.selectedIndex = 2;
             }
         }
