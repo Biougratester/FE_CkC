@@ -1,0 +1,137 @@
+{
+    "belts": [
+        {
+            "arrhenius": {
+                "activation_energy_j_mol": 35000,
+                "reference_point_1": {
+                    "temperature_c": 25,
+                    "lifetime_h": 9999999
+                },
+                "reference_point_2": {
+                    "temperature_c": 175,
+                    "lifetime_h": 168
+                },
+                "reference_point_3": {
+                    "temperature_c": 400,
+                    "lifetime_h": 0.001
+                }
+            },
+            "hours_already_operated": 0,
+            "id": 1,
+            "name": "Bande 1",
+            "relative_use_rate": 1
+        },
+        {
+            "arrhenius": {
+                "activation_energy_j_mol": 35000,
+                "reference_point_1": {
+                    "temperature_c": 25,
+                    "lifetime_h": 9999999
+                },
+                "reference_point_2": {
+                    "temperature_c": 175,
+                    "lifetime_h": 168
+                },
+                "reference_point_3": {
+                    "temperature_c": 400,
+                    "lifetime_h": 0.001
+                }
+            },
+            "hours_already_operated": 0,
+            "id": 2,
+            "name": "Bande 2",
+            "relative_use_rate": 1e-05
+        },
+        {
+            "arrhenius": {
+                "activation_energy_j_mol": 35000,
+                "reference_point_1": {
+                    "temperature_c": 25,
+                    "lifetime_h": 9999999
+                },
+                "reference_point_2": {
+                    "temperature_c": 175,
+                    "lifetime_h": 168
+                },
+                "reference_point_3": {
+                    "temperature_c": 400,
+                    "lifetime_h": 0.001
+                }
+            },
+            "hours_already_operated": 0,
+            "id": 3,
+            "name": "Bande 3",
+            "relative_use_rate": 1
+        }
+    ],
+    "costs": {
+        "average_replacement_area_m2": 140,
+        "belt_price_per_m2": 1026,
+        "electricity_price_kwh": 1.5958
+    },
+    "extraction_system": {
+        "total_utilization_rate": 0.07
+    },
+    "limits": {
+        "clinker_temp": {
+            "output_max": 200
+        },
+        "fan_speed_total": {
+            "max": 601
+        },
+        "grate_speed": {
+            "max": 30
+        }
+    },
+    "power_model": {
+        "k1": -8.59643518e-05,
+        "k2": -0.129598256,
+        "k3": 0.00106196275
+    },
+    "process_variability": {
+        "ambient_air_temp_Tamb": {
+            "max": 50,
+            "min": 5,
+            "nominal_mean": 25,
+            "r2_assignable": 0,
+            "std_total": 9
+        },
+        "clinker_inlet_temp_Tin": {
+            "max": 1450,
+            "min": 700,
+            "nominal_mean": 1225,
+            "r2_assignable": 0.8,
+            "std_total": 63
+        },
+        "clinker_outlet_temp_Tout": {
+            "max": 700,
+            "min": 25,
+            "r2_assignable": 0.6,
+            "std_total": 25
+        },
+        "debit_clinker_m": {
+            "max": 430,
+            "min": 0,
+            "r2_assignable": 0,
+            "std_total": 32
+        },
+        "soufflage_S": {
+            "max": 601,
+            "min": 0,
+            "r2_assignable": 0.8,
+            "std_total": 20
+        },
+        "vitesse_grilles_vg": {
+            "max": 30,
+            "min": 0,
+            "r2_assignable": 0.8,
+            "std_total": 2.25
+        }
+    },
+    "temperature_model": {
+        "T_base": 1225,
+        "T_emb": 25,
+        "coeff_charge": 1.2,
+        "coeff_soufflage": -34.94471055
+    }
+}

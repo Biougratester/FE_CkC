@@ -1,0 +1,88 @@
+{
+    "costs": {
+      "electricity_price_kwh": 1.5958,
+      "belt_price_per_m2": 1026,
+      "average_replacement_area_m2": 140
+    },
+    "power_model": {
+      "k1": -8.59643518e-05,
+      "k2": -1.29598256e-01,
+      "k3": 1.06196275e-03
+    },
+    "temperature_model": {
+      "T_base": 1225,
+      "coeff_soufflage": -34.94471055,
+      "coeff_charge": 1.2,
+      "T_emb": 25
+    },
+    "process_variability": {
+    "soufflage_S": {
+      "min": 0.0, "max": 601.0, 
+      "std_total": 20.0, "r2_assignable": 0.5
+    },
+    "vitesse_grilles_vg": {
+      "min": 0.0, "max": 30.0, 
+      "std_total": 2.25, "r2_assignable": 0
+    },
+    "debit_clinker_m": {
+      "min": 0.0, "max": 430.0, 
+      "std_total": 32, "r2_assignable": 0
+    },
+    "clinker_inlet_temp_Tin": {
+      "nominal_mean": 1200.0,
+      "min": 700.0, "max": 1450.0, 
+      "std_total": 63, "r2_assignable": 0.8
+    },
+    "ambient_air_temp_Tamb": {
+      "nominal_mean": 25.0,
+      "min": 5.0, "max": 50.0, 
+      "std_total": 9.0, "r2_assignable": 0
+    }
+  },
+    "extraction_system": {
+      "total_utilization_rate": 0.07
+    },
+    "belts": [
+    {
+      "id": 1,
+      "name": "Bande 1",
+      "relative_use_rate": 1.0,
+      "hours_already_operated": 0,
+      "arrhenius": {
+        "activation_energy_j_mol": 35000,
+        "reference_point_1": { "temperature_c": 25, "lifetime_h": 9999999 },
+        "reference_point_2": { "temperature_c": 175.0, "lifetime_h": 168 },
+        "reference_point_3": { "temperature_c": 400, "lifetime_h": 0.001 }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bande 2",
+      "relative_use_rate": 0.00001,
+      "hours_already_operated": 0,
+      "arrhenius": {
+        "activation_energy_j_mol": 35000,
+        "reference_point_1": { "temperature_c": 25, "lifetime_h": 9999999 },
+        "reference_point_2": { "temperature_c": 175.0, "lifetime_h": 168 },
+        "reference_point_3": { "temperature_c": 400, "lifetime_h": 0.001 }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Bande 3",
+      "relative_use_rate": 1.0,
+      "hours_already_operated": 0,
+      "arrhenius": {
+        "activation_energy_j_mol": 35000,
+        "reference_point_1": { "temperature_c": 25, "lifetime_h": 9999999 },
+        "reference_point_2": { "temperature_c": 175.0, "lifetime_h": 168 },
+        "reference_point_3": { "temperature_c": 400, "lifetime_h": 0.001 }
+      }
+    }
+  ],
+  "limits": {
+    "fan_speed_total": { "max": 5400 },
+    "grate_speed": { "max": 30 },
+    "clinker_temp": { "output_max": 250 }
+  }
+  }
