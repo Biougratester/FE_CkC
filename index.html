@@ -133,6 +133,51 @@
 
         .hmi-trajectoire { opacity: 0.5; pointer-events: none; }
         .hmi-trajectoire.active { opacity: 1; pointer-events: all; }
+        /* =========================================
+           MODE RESPONSIVE (Mobiles et Tablettes)
+           ========================================= */
+        @media screen and (max-width: 800px) {
+            /* 1. On empile les onglets s'ils prennent trop de place */
+            .hmi-tabs {
+                flex-wrap: wrap;
+                margin-bottom: 10px;
+            }
+            
+            /* 2. Le menu de l'URL prend toute la largeur */
+            .hmi-select {
+                max-width: 100%;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            /* 3. LE COUP DE MAÎTRE : Force TOUS les conteneurs "côte à côte" 
+               (même ceux avec du style en ligne) à s'empiler en colonne */
+            div[style*="display: flex"] {
+                flex-direction: column !important;
+            }
+
+            /* 4. Les tableaux d'usine sont souvent trop larges. 
+               On permet de glisser le doigt de gauche à droite sans casser la page */
+            .hmi-panel {
+                overflow-x: auto; 
+                padding: 4px;
+            }
+            table {
+                min-width: 500px; /* Empêche le texte de s'écraser */
+            }
+
+            /* 5. Les écrans digitaux des coûts/températures s'adaptent */
+            .digital-display {
+                font-size: 18px !important;
+                padding: 10px !important;
+            }
+            
+            /* 6. Les graphiques en camembert prennent tout l'espace */
+            canvas {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -149,8 +194,8 @@
         </div>
         <div class="api-status">
             <select id="server-select" class="hmi-select" onchange="changeServer(this.value)">
-                <option value="https://expertsys-vlbi.onrender.com/api/v1"> LOCALHOST (DEV)</option>
-                <option value="https://expertsys-vlbi.onrender.com/api/v1"> SERVEUR USINE (PROD)</option>
+                <option value="https://ckcexpertsys.pythonanywhere.com/api/v1"> LOCALHOST (DEV)</option>
+                <option value="https://ckcexpertsys.pythonanywhere.com/api/v1"> SERVEUR USINE (PROD)</option>
                 <option value="custom">URL PERSONNALISÉE...</option>
             </select>
             LINK: <span id="link-status">OFFLINE</span>
