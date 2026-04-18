@@ -98,8 +98,8 @@
             </div>
             <div class="api-status">
                 <select id="server-select" class="hmi-select" onchange="changeServer(this.value)">
-                    <option value="https://ckcexpertsys.pythonanywhere.com/api/v1/">LOCALHOST (DEV)</option>
-                    <option value="https://ckcexpertsys.pythonanywhere.com/api/v1/">SERVEUR USINE (PROD)</option>
+                    <option value="https://ckcexpertsys.pythonanywhere.com/api/v1">LOCALHOST (DEV)</option>
+                    <option value="https://ckcexpertsys.pythonanywhere.com/api/v1">SERVEUR USINE (PROD)</option>
                 </select>
                 LINK: <span id="link-status">OFFLINE</span>
                 <div id="link-indicator" class="indicator"></div>
@@ -723,7 +723,7 @@
 
     <script>
         let globalConfig = null;
-        let API_BASE = localStorage.getItem('cimar_api_url') || 'https://ckcexpertsys.pythonanywhere.com/api/v1/';
+        let API_BASE = localStorage.getItem('cimar_api_url') || 'https://ckcexpertsys.pythonanywhere.com/api/v1';
 
         let pieChart, lineChart;
         let smallPies = {};
