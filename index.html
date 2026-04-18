@@ -3,180 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinker Cooler Digital twin</title>
+    <title>Clinker Cooler Expert System</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Arial:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
-    <link rel="icon" href="https://www.cimentsdumaroc.com/sites/default/files/ico/CIMAR_LOGO_Horizontal.ico" type="image/x-icon">
+    <link rel="icon" href="https://www.cimentsdumaroc.com/sites/default/files/ico/CIMAR_LOGO_Horizontal.ico" type="image/svg+xml">
     <style>
         :root {
-            --bg-desktop: #808080;
-            --bg-panel: #d4d0c8;
-            --text-main: #000000;
-            --text-digital: #00ff00;
-            --bg-digital: #000000;
-            
-            --border-outset: 2px solid;
-            --border-outset-color: #ffffff #808080 #808080 #ffffff;
-            --border-inset: 2px solid;
-            --border-inset-color: #808080 #ffffff #ffffff #808080;
-
-            --font-ui: 'Arial', sans-serif;
-            --font-mono: 'Roboto Mono', monospace;
+            /* THEME SCADA INDUSTRIEL ORIGINAL */
+            --bg-desktop: #808080; --bg-panel: #d4d0c8;
+            --text-main: #000000; --text-digital: #00ff00; --bg-digital: #000000;
+            --border-outset: 2px solid; --border-outset-color: #ffffff #808080 #808080 #ffffff;
+            --border-inset: 2px solid; --border-inset-color: #808080 #ffffff #ffffff #808080;
+            --font-ui: 'Arial', sans-serif; --font-mono: 'Roboto Mono', monospace;
+            --color-primary: #000080; /* Bleu Marine */
+            --color-secondary: #006600; /* Vert Foncé */
         }
 
-        body {
-            background-color: var(--bg-desktop);
-            color: var(--text-main);
-            font-family: var(--font-ui);
-            margin: 0; padding: 0;
-            font-size: 12px;
-            overflow-x: hidden;
-        }
-
-        .hmi-header {
-            background-color: var(--bg-panel); border-bottom: 2px solid #404040;
-            padding: 5px 15px; display: flex; justify-content: space-between; align-items: flex-end;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-        .logo-container { 
-            background: white; padding: 4px 10px; 
-            border: var(--border-inset); border-color: var(--border-inset-color);
-            display: flex; align-items: center; gap: 10px; 
-        }
+        body { background-color: var(--bg-desktop); color: var(--text-main); font-family: var(--font-ui); margin: 0; padding: 0; font-size: 12px; overflow-x: hidden; }
+        .hmi-header { background-color: var(--bg-panel); border-bottom: 2px solid #404040; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; box-shadow: 0 2px 5px rgba(0,0,0,0.5); box-sizing: border-box; width: 100vw;}
+        .logo-container { background: white; padding: 4px 10px; border: var(--border-inset); border-color: var(--border-inset-color); display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        #mobile-nav-group { display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap; justify-content: flex-end; }
         .cimar-logo { height: 28px; width: auto;}
         .tool-title { font-size: 14px; font-weight: bold; color: #333;}
-
-        .hmi-tabs { 
-            display: flex; gap: 2px; margin-bottom: -2px; 
-            flex-shrink: 0; /* Empêche les onglets de s'écraser */
-        }
-        .tab-btn {
-            background: var(--bg-panel); color: var(--text-main);
-            border: var(--border-outset); border-color: var(--border-outset-color);
-            border-bottom: none; padding: 6px 15px; font-family: var(--font-ui); font-size: 12px; font-weight: bold;
-            cursor: pointer;
-        }
+        .hmi-tabs { display: flex; gap: 2px; margin-bottom: -2px; flex-shrink: 0; flex-wrap: wrap; }
+        .tab-btn { background: var(--bg-panel); color: var(--text-main); border: var(--border-outset); border-color: var(--border-outset-color); border-bottom: none; padding: 6px 15px; font-family: var(--font-ui); font-size: 12px; font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: var(--bg-panel); border-bottom: 2px solid var(--bg-panel); padding-bottom: 8px; }
-        
-        .api-status { 
-            background: #fff; border: var(--border-inset); border-color: var(--border-inset-color);
-            padding: 2px 8px; font-family: var(--font-mono); font-size: 11px; 
-            display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
-        }
-        .hmi-select {
-            background: #eee; border: 1px solid #888; font-family: var(--font-mono);
-            font-size: 10px; padding: 2px 4px; font-weight: bold; cursor: pointer;
-            margin-right: 10px; outline: none;
-            max-width: 160px; /* Bloque la largeur maximale */
-            text-overflow: ellipsis; /* Ajoute les "..." à la fin */
-            white-space: nowrap;
-            overflow: hidden;
-        }
+        .api-status { background: #fff; border: var(--border-inset); border-color: var(--border-inset-color); padding: 2px 8px; font-family: var(--font-mono); font-size: 11px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .hmi-select { background: #eee; border: 1px solid #888; font-family: var(--font-mono); font-size: 10px; padding: 2px 4px; font-weight: bold; cursor: pointer; margin-right: 10px; outline: none; max-width: 160px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
         .hmi-select:hover { background: #fff; }
         .indicator { width: 10px; height: 10px; background: red; border: 1px solid #000; }
         .indicator.online { background: #00FF00; }
-
         .container { padding: 15px; max-width: 1450px; margin: 0 auto; }
         .tab-content { display: none; background: var(--bg-panel); border: var(--border-outset); border-color: var(--border-outset-color); padding: 10px; }
         .tab-content.active { display: block; }
-
         .grid-eval { display: grid; grid-template-columns: 320px 1fr 340px; gap: 10px; }
         .grid-config { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
         .hmi-panel { border: var(--border-outset); border-color: var(--border-outset-color); padding: 10px; margin-bottom: 10px; }
-        .panel-header {
-            background: #000080; color: white; padding: 3px 6px; font-weight: bold; font-size: 12px;
-            margin: -10px -10px 10px -10px; text-transform: uppercase;
-        }
-        
+        .panel-header { background: var(--color-primary); color: white; padding: 3px 6px; font-weight: bold; font-size: 12px; margin: -10px -10px 10px -10px; text-transform: uppercase; }
         .control-group { margin-bottom: 8px; }
         label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 2px; text-transform: uppercase;}
-        
-        input[type="number"], input[type="text"] {
-            width: 100%; padding: 4px; border: var(--border-inset); border-color: var(--border-inset-color);
-            box-sizing: border-box; font-family: var(--font-mono); font-size: 12px; background: white;
-        }
-        
-        .btn-hmi {
-            background-color: var(--bg-panel); color: var(--text-main); 
-            border: var(--border-outset); border-color: var(--border-outset-color);
-            padding: 6px 15px; font-family: var(--font-ui);
-            font-weight: bold; font-size: 12px; cursor: pointer; width: 100%; text-transform: uppercase;
-        }
+        input[type="number"], input[type="text"], input[type="checkbox"] { padding: 4px; border: var(--border-inset); border-color: var(--border-inset-color); box-sizing: border-box; font-family: var(--font-mono); font-size: 12px; background: white; }
+        input[type="number"], input[type="text"] { width: 100%; }
+        .btn-hmi { background-color: var(--bg-panel); color: var(--text-main); border: var(--border-outset); border-color: var(--border-outset-color); padding: 6px 15px; font-family: var(--font-ui); font-weight: bold; font-size: 12px; cursor: pointer; width: 100%; text-transform: uppercase; }
         .btn-hmi:active { border: var(--border-inset); border-color: var(--border-inset-color); padding: 7px 14px 5px 16px; }
-
-        .digital-display {
-            background-color: var(--bg-digital); color: var(--text-digital);
-            font-family: var(--font-mono); font-size: 20px; font-weight: bold;
-            border: var(--border-inset); border-color: var(--border-inset-color);
-            padding: 5px; text-align: right;
-        }
-        .digital-display.danger { color: #ff0000; }
-        
+        .digital-display { background-color: var(--bg-digital); color: var(--text-digital); font-family: var(--font-mono); font-size: 20px; font-weight: bold; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px; text-align: right; }
         .data-row { display: flex; justify-content: space-between; border-bottom: 1px dotted #888; padding: 4px 0; }
         .data-label { font-size: 11px; font-weight: bold; text-transform: uppercase;}
         .data-val { font-family: var(--font-mono); font-weight: bold; font-size: 12px;}
-
         .chart-wrapper { position: relative; height: 100%; width: 100%; overflow: hidden; }
         .chart-border-box { background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 2px; }
-        
-        .math-block { background: white; padding: 10px; border: var(--border-inset); border-color: var(--border-inset-color); margin-bottom: 10px; }
-
+        .math-block { background: white; padding: 10px; border: var(--border-inset); border-color: var(--border-inset-color); margin-bottom: 10px; color: black; text-align: center; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; background: white; border: var(--border-inset); border-color: var(--border-inset-color); }
         th, td { padding: 4px 6px; text-align: left; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; }
         th { background: var(--bg-panel); border-bottom: 2px solid #888; text-transform: uppercase; }
         td { font-family: var(--font-mono); }
-
         .hmi-trajectoire { opacity: 0.5; pointer-events: none; }
         .hmi-trajectoire.active { opacity: 1; pointer-events: all; }
-        /* =========================================
-           MODE RESPONSIVE (Mobiles et Tablettes)
-           ========================================= */
+
         @media screen and (max-width: 800px) {
-            /* 1. On empile les onglets s'ils prennent trop de place */
-            .hmi-tabs {
-                flex-wrap: wrap;
-                margin-bottom: 10px;
-            }
-            
-            /* 2. Le menu de l'URL prend toute la largeur */
-            .hmi-select {
-                max-width: 100%;
-                width: 100%;
-                margin-bottom: 5px;
-            }
-
-            /* 3. LE COUP DE MAÎTRE : Force TOUS les conteneurs "côte à côte" 
-               (même ceux avec du style en ligne) à s'empiler en colonne */
-            div[style*="display: flex"] {
-                flex-direction: column !important;
-            }
-
-            /* 4. Les tableaux d'usine sont souvent trop larges. 
-               On permet de glisser le doigt de gauche à droite sans casser la page */
-            .hmi-panel {
-                overflow-x: auto; 
-                padding: 4px;
-            }
-            table {
-                min-width: 500px; /* Empêche le texte de s'écraser */
-            }
-
-            /* 5. Les écrans digitaux des coûts/températures s'adaptent */
-            .digital-display {
-                font-size: 18px !important;
-                padding: 10px !important;
-            }
-            
-            /* 6. Les graphiques en camembert prennent tout l'espace */
-            canvas {
-                max-width: 100% !important;
-                height: auto !important;
-            }
+            #mobile-menu-toggle { display: block !important; width: 100%; padding: 12px; background-color: var(--color-primary); color: white; font-weight: bold; border: 2px outset #dfdfdf; cursor: pointer; margin-bottom: 5px; box-sizing: border-box; }
+            #mobile-nav-group { display: none !important; flex-direction: column !important; width: 100% !important; background-color: #e0e0e0; padding: 5px; box-sizing: border-box; }
+            #mobile-nav-group.menu-open { display: flex !important; }
+            .hmi-tabs { display: flex !important; flex-direction: column !important; width: 100% !important; }
+            .hmi-tabs button, .server-status-bar { width: 100% !important; max-width: 100% !important; margin: 2px 0 !important; box-sizing: border-box !important; }
+            .server-status-bar { display: flex !important; flex-direction: column !important; padding: 10px !important; }
+            .hmi-select { max-width: 100% !important; width: 100% !important; margin-top: 5px; }
+            .tab-content > div, .hmi-panel > div { display: flex !important; flex-direction: column !important; width: 100% !important; }
+            .hmi-panel { overflow-x: auto; padding: 5px; margin-bottom: 15px; }
+            table { min-width: 500px; }
+            .canvas-container, canvas { width: 100% !important; max-width: 100% !important; height: auto !important; }
         }
     </style>
 </head>
@@ -187,19 +88,22 @@
             <img src="https://www.cimentsdumaroc.com/sites/default/files/2026-01/CIMAR_LOGO.svg" alt="CIMAR Logo" class="cimar-logo">
             <div class="tool-title">SYS-CTRL // EXPERT SYSTEM</div>
         </div>
-        <div class="hmi-tabs">
-            <button class="tab-btn active" onclick="switchTab('dashboard')">EVALUATION AVANCEE</button>
-            <button class="tab-btn" onclick="switchTab('isotemp')">OUTIL ISO-TEMPERATURE</button>
-            <button class="tab-btn" onclick="switchTab('config'); loadConfigToForm();">CONFIGURATION SYSTEME</button>
-        </div>
-        <div class="api-status">
-            <select id="server-select" class="hmi-select" onchange="changeServer(this.value)">
-                <option value="https://ckcexpertsys.pythonanywhere.com/api/v1"> LOCALHOST (DEV)</option>
-                <option value="https://ckcexpertsys.pythonanywhere.com/api/v1"> SERVEUR USINE (PROD)</option>
-                <option value="custom">URL PERSONNALISÉE...</option>
-            </select>
-            LINK: <span id="link-status">OFFLINE</span>
-            <div id="link-indicator" class="indicator"></div>
+        <button id="mobile-menu-toggle" style="display: none;">MENU NAVIGATION</button>
+        <div id="mobile-nav-group">
+            <div class="hmi-tabs">
+                <button class="tab-btn active" onclick="switchTab('dashboard')">EVALUATION AVANCEE</button>
+                <button class="tab-btn" onclick="switchTab('autotune'); syncGlobalParams();">OPTIMISATION APC</button>
+                <button class="tab-btn" onclick="switchTab('isotemp')">OUTIL ISO-TEMPERATURE</button>
+                <button class="tab-btn" onclick="switchTab('config'); loadConfigToForm();">CONFIGURATION SYSTEME</button>
+            </div>
+            <div class="api-status">
+                <select id="server-select" class="hmi-select" onchange="changeServer(this.value)">
+                    <option value="https://ckcexpertsys.pythonanywhere.com/api/v1/">LOCALHOST (DEV)</option>
+                    <option value="https://ckcexpertsys.pythonanywhere.com/api/v1/">SERVEUR USINE (PROD)</option>
+                </select>
+                LINK: <span id="link-status">OFFLINE</span>
+                <div id="link-indicator" class="indicator"></div>
+            </div>
         </div>
     </div>
 
@@ -212,7 +116,7 @@
                     <div class="hmi-panel">
                         <div class="panel-header">PARAMETRES OPERATOIRES</div>
                         <div class="control-group">
-                            <label>SOUFFLAGE TOTAL (S) - Nm3/h</label>
+                            <label>SOUFFLAGE TOTAL (S) - x10³ Nm³/h</label>
                             <input type="number" id="in_s" value="300" step="10" oninput="evaluateDecision()">
                             <input type="range" id="slide_s" min="0" max="601" value="300" oninput="document.getElementById('in_s').value = this.value; evaluateDecision()">
                         </div>
@@ -223,93 +127,64 @@
                         </div>
                         <div class="control-group">
                             <label>DEBIT FARINE CRUE (m) - t/h</label>
-                            <input type="number" id="in_m" value="215" step="5" oninput="evaluateDecision()">
-                            <input type="range" id="slide_m" min="0" max="430" value="215" oninput="document.getElementById('in_m').value = this.value; evaluateDecision()">
+                            <input type="number" id="in_m" value="415" step="5" oninput="evaluateDecision()">
+                            <input type="range" id="slide_m" min="0" max="430" value="415" oninput="document.getElementById('in_m').value = this.value; evaluateDecision()">
                         </div>
-                        
                         <hr style="border-top: 1px solid #888; border-bottom: 1px solid #fff; margin: 15px 0;">
-                        
                         <div class="control-group">
                             <div style="display: flex; gap: 10px;">
                                 <div style="flex: 1;"><label>POIDS ELEC (A)</label><input type="number" id="in_alpha" value="1.0" step="0.1" oninput="evaluateDecision()"></div>
                                 <div style="flex: 1;"><label>POIDS MAINT (B)</label><input type="number" id="in_beta" value="1.0" step="0.1" oninput="evaluateDecision()"></div>
                             </div>
                             <div style="display: flex; gap: 5px; margin-top: 8px;">
-                                <button class="btn-hmi" style="font-size: 10px; padding: 5px;" onclick="setWeights(1.0, 1.0)">EQUILIBRE</button>
-                                <button class="btn-hmi" style="font-size: 10px; padding: 5px;" onclick="setWeights(1.0, 5.0)">PROTECTION</button>
-                                <button class="btn-hmi" style="font-size: 10px; padding: 5px;" onclick="setWeights(5.0, 1.0)">ECONOMIE</button>
+                                <button type="button" class="btn-hmi" style="font-size: 10px; padding: 5px;" onclick="setWeights(1.0, 1.0)">EQUILIBRE</button>
+                                <button type="button" class="btn-hmi" style="font-size: 10px; padding: 5px;" onclick="setWeights(1.0, 5.0)">PROTECTION</button>
+                                <button type="button" class="btn-hmi" style="font-size: 10px; padding: 5px;" onclick="setWeights(5.0, 1.0)">ECONOMIE</button>
                             </div>
                         </div>
+                        <button type="button" class="btn-hmi" onclick="evaluateDecision()" style="margin-top: 10px; background-color: var(--color-primary); color: white;">EVALUER LE CYCLE</button>
                         
-                        <button class="btn-hmi" onclick="evaluateDecision()" style="margin-top: 10px;">EVALUER LE CYCLE</button>
+                        <button type="button" class="btn-hmi" onclick="generateSmartReport()" id="btn_generate_report" style="margin-top: 10px; background-color: #555; color: white;">
+                            GÉNÉRER LE RAPPORT (PDF)
+                        </button>
+                        <div id="report_status" style="margin-top: 5px; text-align: center; font-weight: bold; font-size: 11px; color: #ffaa00; display: none;">Préparation du document...</div>
                     </div>
 
                     <div class="hmi-panel">
                         <div class="panel-header" style="background: #444;">POIDS DES MODELES (ENSEMBLE)</div>
                         <table style="margin-bottom: 0;">
-                            <thead>
-                                <tr><th>MODÈLE</th><th style="text-align: center;">W(TEMP)</th><th style="text-align: center;">W(PUISS)</th></tr>
-                            </thead>
+                            <thead><tr><th>MODÈLE</th><th style="text-align: center;">W(TEMP)</th><th style="text-align: center;">W(PUISS)</th></tr></thead>
                             <tbody>
-                                <tr>
-                                    <td style="font-weight: bold;">Physique</td>
-                                    <td><input type="number" id="w_temp_analytical" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                    <td><input type="number" id="w_pow_analytical" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold;">XGBoost</td>
-                                    <td><input type="number" id="w_temp_xgboost" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                    <td><input type="number" id="w_pow_xgboost" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold;">R. Forest</td>
-                                    <td><input type="number" id="w_temp_rf" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                    <td><input type="number" id="w_pow_rf" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold;">E. Trees</td>
-                                    <td><input type="number" id="w_temp_extra_trees" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                    <td><input type="number" id="w_pow_extra_trees" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td>
-                                </tr>
+                                <tr><td style="font-weight: bold;">Physique</td><td><input type="number" id="w_temp_analytical" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td><td><input type="number" id="w_pow_analytical" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td></tr>
+                                <tr><td style="font-weight: bold;">XGBoost</td><td><input type="number" id="w_temp_xgboost" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td><td><input type="number" id="w_pow_xgboost" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td></tr>
+                                <tr><td style="font-weight: bold;">R. Forest</td><td><input type="number" id="w_temp_rf" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td><td><input type="number" id="w_pow_rf" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td></tr>
+                                <tr><td style="font-weight: bold;">E. Trees</td><td><input type="number" id="w_temp_extra_trees" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td><td><input type="number" id="w_pow_extra_trees" value="1.0" step="0.1" min="0" onchange="evaluateDecision()" style="text-align: center; padding: 2px;"></td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
-                    
                     <div class="hmi-panel">
                         <div class="panel-header">PREDICTIONS MULTI-MODELES (IA + PHYSIQUE)</div>
                         <table style="margin-bottom: 10px;">
                             <thead><tr><th>MODELE</th><th>T. SORTIE (C)</th><th>ELEC (MAD)</th><th>MAINT (MAD)</th><th>TOTAL PONDERE</th></tr></thead>
-                            <tbody id="multi-model-tbody">
-                                <tr><td colspan="5" style="text-align: center;">En attente de donnees...</td></tr>
-                            </tbody>
+                            <tbody id="multi-model-tbody"><tr><td colspan="5" style="text-align: center;">En attente de donnees...</td></tr></tbody>
                         </table>
-                        
                         <div style="display: flex; gap: 8px;">
-                            <div style="flex: 1;">
-                                <label>MOY: T. SORTIE CLINKER</label>
-                                <div id="out_temp" class="digital-display">---.-</div>
-                            </div>
-                            <div style="flex: 1;">
-                                <label>MOY: COUT PONDERE</label>
-                                <div id="out_cost_total" class="digital-display" style="color: #00ffff;">----.-</div>
-                            </div>
-                            <div style="flex: 1;">
-                                <label>COUT SPECIFIQUE (MAD/T)</label>
-                                <div id="out_cost_spec" class="digital-display" style="color: #ffaa00;">---.--</div>
-                            </div>
+                            <div style="flex: 1;"><label>MOY: T. SORTIE CLINKER</label><div id="out_temp" class="digital-display">---.-</div></div>
+                            <div style="flex: 1;"><label>MOY: COUT PONDERE</label><div id="out_cost_total" class="digital-display" style="color: #00ffff;">----.-</div></div>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <div style="flex: 1;"><label>COUT SPECIFIQUE (MAD/t)</label><div id="out_cost_spec" class="digital-display" style="color: #ffaa00;">---.--</div></div>
+                            <div style="flex: 1;"><label>AIR SPECIFIQUE (Nm³/kg Clinker)</label><div id="out_air_spec" class="digital-display" style="color: #fff;">---.-</div></div>
                         </div>
                     </div>
-
                     <div class="hmi-panel" style="flex-grow: 1;">
-                        <div class="panel-header">ETAT DES EQUIPEMENTS (BASE SUR LA MOYENNE)</div>
+                        <div class="panel-header">ETAT DES BANDES (BASE SUR LA MOYENNE)</div>
                         <table>
                             <thead><tr><th>ID EQUIPEMENT</th><th>UTILISATION</th><th>RESTE EST. (H)</th></tr></thead>
-                            <tbody id="belt-table-body">
-                                <tr><td colspan="3" style="text-align: center;">En attente de donnees...</td></tr>
-                            </tbody>
+                            <tbody id="belt-table-body"><tr><td colspan="3" style="text-align: center;">En attente de donnees...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -317,122 +192,283 @@
                 <div style="display: flex; flex-direction: column;">
                     <div class="hmi-panel">
                         <div class="panel-header">ANALYSE FINANCIERE PONDEREE</div>
-                        
                         <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px;">
-                            
                             <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); display: flex; flex-direction: column;">
                                 <div style="background: #ccc; border-bottom: 1px solid #aaa; text-align: center; font-weight: bold; font-size: 9px; padding: 3px;">PHYSIQUE</div>
-                                <div style="position: relative; height: 90px; width: 100%; min-width: 0; min-height: 0;">
-                                    <canvas id="pie_analytical"></canvas>
-                                </div>
+                                <div style="position: relative; height: 90px; width: 100%;"><canvas id="pie_analytical"></canvas></div>
                             </div>
-                            
                             <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); display: flex; flex-direction: column;">
                                 <div style="background: #ccc; border-bottom: 1px solid #aaa; text-align: center; font-weight: bold; font-size: 9px; padding: 3px;">IA: XGBOOST</div>
-                                <div style="position: relative; height: 90px; width: 100%; min-width: 0; min-height: 0;">
-                                    <canvas id="pie_xgboost"></canvas>
-                                </div>
+                                <div style="position: relative; height: 90px; width: 100%;"><canvas id="pie_xgboost"></canvas></div>
                             </div>
-                            
                             <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); display: flex; flex-direction: column;">
                                 <div style="background: #ccc; border-bottom: 1px solid #aaa; text-align: center; font-weight: bold; font-size: 9px; padding: 3px;">IA: R. FOREST</div>
-                                <div style="position: relative; height: 90px; width: 100%; min-width: 0; min-height: 0;">
-                                    <canvas id="pie_rf"></canvas>
-                                </div>
+                                <div style="position: relative; height: 90px; width: 100%;"><canvas id="pie_rf"></canvas></div>
                             </div>
-                            
                             <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); display: flex; flex-direction: column;">
                                 <div style="background: #ccc; border-bottom: 1px solid #aaa; text-align: center; font-weight: bold; font-size: 9px; padding: 3px;">IA: E. TREES</div>
-                                <div style="position: relative; height: 90px; width: 100%; min-width: 0; min-height: 0;">
-                                    <canvas id="pie_extra_trees"></canvas>
-                                </div>
+                                <div style="position: relative; height: 90px; width: 100%;"><canvas id="pie_extra_trees"></canvas></div>
                             </div>
-
                         </div>
-
                         <div class="panel-header" style="margin: 0 -10px 10px -10px; background: #555; font-size: 10px;">MOYENNE (ENSEMBLE)</div>
-                        <div class="chart-border-box">
-                            <div class="chart-wrapper" style="height: 140px;">
-                                <canvas id="costPieChart"></canvas>
-                            </div>
+                        <div class="chart-border-box"><div class="chart-wrapper" style="height: 140px;"><canvas id="costPieChart"></canvas></div></div>
+                    </div>
+                    <div class="hmi-panel" id="alarm-panel" style="display: none; background: #ffaaaa;">
+                        <div class="panel-header" style="background: red;">ALARMES ACTIVES</div>
+                        <div id="alarm-container" style="color: black; font-family: var(--font-mono); font-weight: bold; font-size: 11px;"></div>
+                    </div>
+                </div>
+
+            </div> 
+            
+            <div class="hmi-panel" style="margin-top: 10px; border-color: #800080;">
+                <div class="panel-header" style="background: #800080;">ANALYSE DE RISQUE STOCHASTIQUE (MONTE CARLO)</div>
+                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; padding: 8px; background: #eee; border: 1px solid #ccc;">
+                    <label>ITÉRATIONS :</label>
+                    <input type="number" id="mc_iterations" value="5000" step="1000" style="width: 120px; font-size: 14px;">
+                    <button type="button" class="btn-hmi" onclick="runMonteCarlo()" style="width: auto; background-color: #ffaa00; color: #000; border-color: #cc8800; font-size: 14px;">LANCER STRESS TEST</button>
+                    <span id="mc_status" style="font-weight: bold; margin-left: 10px; font-family: var(--font-mono); font-size: 14px; color: #000080;">En attente de lancement...</span>
+                </div>
+
+                <table style="text-align: center; margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; background: transparent; border-bottom: 2px solid #888;">INDICATEUR</th>
+                            <th style="background: transparent; border-bottom: 2px solid #888;">MOYENNE ATTENDUE</th>
+                            <th style="background: transparent; border-bottom: 2px solid #888;">ZONE DE CONFORT (50%)<br><span style="font-size: 9px; font-weight: normal;">P25 - P75</span></th>
+                            <th style="background: transparent; border-bottom: 2px solid #888;">GARANTIE OPÉRAT. (95%)<br><span style="font-size: 9px; font-weight: normal;">P2.5 - P97.5</span></th>
+                            <th style="background: transparent; border-bottom: 2px solid #888;">SCÉNARIO CATASTROPHE (TAIL)<br><span style="font-size: 9px; font-weight: normal;">P_Risque - Max</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="mc-tbody"><tr><td colspan="5" style="text-align: left;">Veuillez lancer la simulation...</td></tr></tbody>
+                </table>
+
+                <div id="mc_charts_wrapper" style="display: none; flex-direction: column; gap: 20px;">
+                    <div>
+                        <div style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #000080; border-bottom: 2px solid #aaa;">1. DISTRIBUTIONS DES VARIABLES DE CONTRÔLE (BRUITÉES)</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">SOUFFLAGE (x10³ Nm³/h)</div><div style="position: relative; height: 180px; width: 100%;"><canvas id="mcSChart"></canvas></div></div>
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">VITESSE GRILLES (mouv/min)</div><div style="position: relative; height: 180px; width: 100%;"><canvas id="mcVgChart"></canvas></div></div>
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">DÉBIT FARINE (t/h)</div><div style="position: relative; height: 180px; width: 100%;"><canvas id="mcMChart"></canvas></div></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #000080; border-bottom: 2px solid #aaa;">2. DISTRIBUTIONS DES RÉSULTATS INTERMÉDIAIRES</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">TEMPÉRATURE CLINKER (°C)</div><div style="position: relative; height: 200px; width: 100%;"><canvas id="mcTempChart"></canvas></div></div>
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">COÛT ÉLECTRIQUE (MAD/h)</div><div style="position: relative; height: 200px; width: 100%;"><canvas id="mcElecChart"></canvas></div></div>
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">COÛT MAINTENANCE (MAD/h)</div><div style="position: relative; height: 200px; width: 100%;"><canvas id="mcMaintChart"></canvas></div></div>
                         </div>
                     </div>
                     
-                    <div class="hmi-panel" id="alarm-panel" style="display: none; background: #ffaaaa;">
-                        <div class="panel-header" style="background: red;">ALARMES ACTIVES</div>
-                        <div id="alarm-container" style="color: black; font-family: var(--font-mono); font-weight: bold; font-size: 11px;">
+                    <div>
+                        <div style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #000080; border-bottom: 2px solid #aaa;">3. SYNTHÈSE GLOBALE ET ARBITRAGE (MOYENNE DE L'ENSEMBLE)</div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px;">
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">DISTRIBUTION : COÛT TOTAL PONDÉRÉ</div><div style="position: relative; height: 220px; width: 100%;"><canvas id="mcCostChart"></canvas></div></div>
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">RÉPARTITION DES COÛTS MOYENS (MAD/h)</div><div style="position: relative; height: 220px; width: 100%;"><canvas id="mcSummaryPieChart"></canvas></div></div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">ARBITRAGE : TEMPÉRATURE VS COÛT TOTAL</div><div style="position: relative; height: 220px; width: 100%;"><canvas id="mcScatterChart"></canvas></div></div>
+                            <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 5px;"><div style="text-align: center; font-weight: bold; font-size: 10px; background: #ccc; border-bottom: 1px solid #aaa;">ARBITRAGE : PRODUCTION VS COÛT SPÉCIFIQUE</div><div style="position: relative; height: 220px; width: 100%;"><canvas id="mcSpecScatterChart"></canvas></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div> 
+            
+        <div id="view-autotune" class="tab-content">
+            
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                <button type="button" class="btn-hmi" onclick="resetOptimizationConstraints()" style="background-color: #ffcccc; color: #a00; border-color: #ff0000; padding: 6px 15px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    RÉINITIALISER LES LIMITES
+                </button>
+            </div>
+
+            <div class="hmi-panel" style="background-color: #ffffff; border-color: #676767; margin-bottom: 15px;">
+                <div class="panel-header" style="background: #000080;">0. PARAMÈTRES GLOBAUX DU PROCESSUS (SYNCHRONISÉS)</div>
+                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <div class="control-group" style="flex: 1;"><label>DÉBIT FARINE CRUE (m) - t/h</label><input type="number" id="auto_in_m" value="415" step="5" onchange="syncGlobalParams(true)"></div>
+                    <div class="control-group" style="flex: 1;"><label>POIDS ÉLECTRIQUE (A)</label><input type="number" id="auto_in_alpha" value="1.0" step="0.1" onchange="syncGlobalParams(true)"></div>
+                    <div class="control-group" style="flex: 1;"><label>POIDS MAINTENANCE (B)</label><input type="number" id="auto_in_beta" value="1.0" step="0.1" onchange="syncGlobalParams(true)"></div>
+                </div>
+            </div>
+
+            <div class="grid-config" style="grid-template-columns: 1fr 1fr; margin-bottom: 10px;">
+                <div class="hmi-panel" style="margin-bottom: 0;">
+                    <div class="panel-header" style="background: #006600;">1. CONTRAINTES D'EXPLORATION STRICTES</div>
+                    
+                    <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 10px; margin-bottom: 10px;">
+                        <div style="font-weight: bold; margin-bottom: 5px; color: #000080; border-bottom: 1px dotted #888;">SOUFFLAGE TOTAL (S) - x10³ Nm³/h</div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div style="flex: 1;"><label>S MIN</label><input type="number" id="auto_s_min" value="0"></div>
+                            <div style="flex: 1;"><label>S MAX</label><input type="number" id="auto_s_max" value="601"></div>
+                            <div style="flex: 1; text-align: center;"><label>VERROUILLER</label><input type="checkbox" id="auto_s_lock" onchange="toggleAutoLock('s')"></div>
+                            <div style="flex: 1;"><label>S EXACT (=)</label><input type="number" id="auto_s_val" value="300" disabled style="background: #eee;"></div>
+                        </div>
+                    </div>
+
+                    <div style="background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 10px; margin-bottom: 10px;">
+                        <div style="font-weight: bold; margin-bottom: 5px; color: #000080; border-bottom: 1px dotted #888;">VITESSE GRILLES (Vg)</div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div style="flex: 1;"><label>Vg MIN</label><input type="number" id="auto_vg_min" value="0"></div>
+                            <div style="flex: 1;"><label>Vg MAX</label><input type="number" id="auto_vg_max" value="30"></div>
+                            <div style="flex: 1; text-align: center;"><label>VERROUILLER</label><input type="checkbox" id="auto_vg_lock" onchange="toggleAutoLock('vg')"></div>
+                            <div style="flex: 1;"><label>Vg EXACT (=)</label><input type="number" id="auto_vg_val" value="15" disabled style="background: #eee;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1; background: #f0f8ff; border: var(--border-inset); border-color: var(--border-inset-color); padding: 10px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #0066cc; border-bottom: 1px dotted #888;">AIR SPÉCIFIQUE (Nm³/kg)</div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div style="flex: 1;"><label>AIR MIN</label><input type="number" id="auto_air_min" value="0" step="0.1"></div>
+                                <div style="flex: 1;"><label>AIR MAX</label><input type="number" id="auto_air_max" value="3.5" step="0.1"></div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; background: #fff0f0; border: var(--border-inset); border-color: var(--border-inset-color); padding: 10px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #cc0000; border-bottom: 1px dotted #888;">TEMP. SORTIE CIBLE (°C)</div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div style="flex: 1;"><label>TEMP MIN</label><input type="number" id="auto_temp_min" value="25" step="1"></div>
+                                <div style="flex: 1;"><label>TEMP MAX</label><input type="number" id="auto_temp_max" value="200" step="1"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <div class="hmi-panel" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div class="panel-header" style="background: var(--color-primary);">2. PROFIL DE RISQUE (FONCTION OBJECTIF)</div>
+                        <div class="math-block" style="padding: 8px; margin-bottom: 10px; text-align: center; border: 1px solid #ccc; background: #f8f8f8;">
+                            \[ \min_{S, v_g} \Big\{ \omega_{moy} \mathbb{E}[C_{tot}] + \omega_{risque} \mathbb{E}\left[C_{tot} \mid C_{tot} \geq P_{95}(C_{tot})\right] \Big\} \]
+                            <div style="font-size: 11px; color: #333; margin-top: 8px;">
+                                Avec \( C_{tot} = \alpha \cdot C_{elec}(S, v_g, m) + \beta \cdot C_{maint}(S, v_g, m) \)
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <label>POIDS RENTABILITÉ <span style="text-transform: none;">(\(\omega_{moy}\))</span></label>
+                                <input type="number" id="auto_w_mean" value="1.0" step="0.1" min="0">
+                            </div>
+                            <div style="flex: 1;">
+                                <label>POIDS SÉCURITÉ <span style="text-transform: none;">(\(\omega_{risque}\))</span></label>
+                                <input type="number" id="auto_w_risk" value="1.0" step="0.1" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #ccc; padding-top: 10px;">
+                        <div class="panel-header" style="background: #555; font-size: 10px;">HYPER-PARAMÈTRES DE L'ALGORITHME</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="control-group"><label>RÉSOLUTION GRILLE RAPIDE (NxN)</label><input type="number" id="hp_grid_coarse" value="30"></div>
+                            <div class="control-group"><label>RÉSOLUTION GRILLE ZOOM (NxN)</label><input type="number" id="hp_grid_fine" value="50"></div>
+                            <div class="control-group"><label>ITÉRATIONS M.C. (GRILLE)</label><input type="number" id="hp_mc_coarse" value="50"></div>
+                            <div class="control-group"><label>ITÉRATIONS M.C. (FINAL)</label><input type="number" id="hp_mc_fine" value="5000"></div>
+                            <div class="control-group"><label>CANDIDATS À SIMULER</label><input type="number" id="hp_cand_sim" value="20"></div>
+                            <div class="control-group"><label>CANDIDATS À AFFICHER</label><input type="number" id="hp_cand_show" value="3"></div>
+                            <div class="control-group" style="grid-column: 1 / -1;">
+                                <label>PERCENTILE DE RISQUE (ex: 95 pour P95)</label>
+                                <input type="number" id="hp_risk_perc" value="95" step="1" max="99.9" min="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="button" class="btn-hmi" onclick="runAutotune()" style="background-color: var(--color-secondary); color: white; padding: 12px; width: 100%; font-size: 14px;">LANCER L'AUTOTUNE (GRID SEARCH)</button>
+                        <div id="autotune_status" style="margin-top: 10px; font-weight: bold; font-family: var(--font-mono); color: var(--color-secondary); text-align: center;">En attente de configuration...</div>
+                    </div>
+                </div>
             </div>
+
+            <div class="grid-config" style="grid-template-columns: 320px 1fr;">
+                
+                <div class="hmi-panel" style="display: flex; flex-direction: column; max-height: 560px; margin-bottom: 0;">
+                    <div class="panel-header" style="background: var(--color-primary);">3. TOP RÉSULTATS</div>
+                    <div id="top-candidates-container" style="overflow-y: auto; padding-right: 5px; flex-grow: 1;">
+                        <div style="text-align: center; font-style: italic; color: #888; padding: 20px;">En attente de l'optimisation...</div>
+                    </div>
+                </div>
+
+                <div class="hmi-panel" style="margin-bottom: 0;">
+                    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; background: var(--color-secondary);">
+                        <span>CARTOGRAPHIES (COÛTS SPÉCIFIQUES ET TEMPÉRATURE)</span>
+                        <div style="display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 4px;">
+                            <span style="font-size: 10px;">FILTRE COÛT (MAD/t) :</span>
+                            <input type="number" id="contour_min" placeholder="Min" style="width: 50px; height: 22px; font-size: 11px; padding: 2px; color: black;">
+                            <input type="number" id="contour_max" placeholder="Max" style="width: 50px; height: 22px; font-size: 11px; padding: 2px; color: black;">
+                            <button type="button" class="btn-hmi" onclick="applyContourFilter()" style="padding: 2px 8px; font-size: 10px; min-width: auto; background-color: #ffaa00; color: black; border: 1px solid white;">FILTRER</button>
+                            <button type="button" class="btn-hmi" onclick="resetContourFilter()" style="padding: 2px 8px; font-size: 10px; min-width: auto; background-color: #888; border: 1px solid white;">RESET</button>
+                            <button type="button" class="btn-hmi" onclick="optimizeZoomRegion()" style="padding: 2px 8px; font-size: 10px; min-width: auto; background-color: #00ff00; color: black; border: 1px solid white; margin-left: 10px; font-weight: bold;">
+                                OPTIMISER CETTE ZONE (HD)
+                            </button>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1; height: 350px; position: relative; background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 2px;">
+                                <div style="position: absolute; top: 0; left: 0; background: #fff; padding: 2px 5px; font-weight: bold; z-index: 10; border-bottom: 1px solid #ccc; border-right: 1px solid #ccc; font-size: 10px;">CARTE DES COÛTS</div>
+                                <div id="autotuneHeatmap" style="width: 100%; height: 100%;"></div>
+                            </div>
+                            <div style="flex: 1; height: 350px; position: relative; background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 2px;">
+                                <div style="position: absolute; top: 0; left: 0; background: #fff; padding: 2px 5px; font-weight: bold; z-index: 10; border-bottom: 1px solid #ccc; border-right: 1px solid #ccc; font-size: 10px;">CARTE DES TEMPÉRATURES</div>
+                                <div id="autotuneTempHeatmap" style="width: 100%; height: 100%;"></div>
+                            </div>
+                        </div>
+                        <div style="height: 250px; position: relative; background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 2px;">
+                            <div style="position: absolute; top: 0; left: 0; background: #fff; padding: 2px 5px; font-weight: bold; z-index: 10; border-bottom: 1px solid #ccc; border-right: 1px solid #ccc; font-size: 10px;">FRONT DE PARETO (COÛT VS TEMP)</div>
+                            <div id="tradeoffScatterPlot" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div id="view-isotemp" class="tab-content">
             <div class="grid-config">
                 <div class="hmi-panel">
-                    <div class="panel-header">1. CALCUL CIBLE ET ANCRAGE</div>
-                    <div class="math-block">
-                        Calcul du coefficient de trajectoire \(K\) pour la relation : \(S = K \cdot v_g\)
-                    </div>
+                    <div class="panel-header">1. CALCUL CIBLE ET TRAJECTOIRE</div>
+                    <div class="math-block">Calcul du coefficient de trajectoire \(K\) pour la relation : \(S = K \cdot v_g\)</div>
+                    <div class="control-group"><label>TEMPERATURE CIBLE (C)</label><input type="number" id="iso_target" value="120" step="1"></div>
+                    <div class="control-group"><label>DEBIT FARINE CRUE (m - t/h)</label><input type="number" id="iso_m" value="415" step="5"></div>
                     
-                    <div class="control-group">
-                        <label>TEMPERATURE CIBLE (C)</label>
-                        <input type="number" id="iso_target" value="120" step="1">
-                    </div>
-                    <div class="control-group">
-                        <label>DEBIT FARINE CRUE (m - t/h)</label>
-                        <input type="number" id="iso_m" value="215" step="5">
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 15px; border: var(--border-inset); border-color: var(--border-inset-color); padding: 8px; background: white;">
-                        <div style="flex: 1;">
-                            <label>ANCRAGE: SOUFFLAGE (S)</label>
-                            <input type="number" id="iso_s" placeholder="OU: valeur S">
-                        </div>
-                        <div style="flex: 1;">
-                            <label>ANCRAGE: VITESSE (Vg)</label>
-                            <input type="number" id="iso_vg" value="15" placeholder="valeur Vg">
-                        </div>
-                    </div>
-                    
-                    <button class="btn-hmi" onclick="evaluateIsoTemp()" style="margin-top: 10px;">TRACER TRAJECTOIRE ISO-TEMP</button>
-
+                    <button type="button" class="btn-hmi" onclick="evaluateIsoTemp()" style="margin-top: 15px;">TRACER TRAJECTOIRE ISO-TEMP</button>
                     <div style="margin-top: 15px;">
                         <div class="data-row"><span class="data-label">SLOPE K:</span> <span id="iso_out_k" class="data-val" style="color: #000080;">---.----</span></div>
-                        <div class="data-row"><span class="data-label">RESULTAT S:</span> <span id="iso_out_s" class="data-val">---.- Nm3/h</span></div>
-                        <div class="data-row"><span class="data-label">RESULTAT Vg:</span> <span id="iso_out_vg" class="data-val">--.-- mouv/min</span></div>
-                        <div class="data-row"><span class="data-label">COUT GLOBAL:</span> <span id="iso_out_cost" class="data-val">----.-- MAD/h</span></div>
                     </div>
                 </div>
-                
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <div class="hmi-panel">
                         <div class="panel-header">VISUALISATION TRAJECTOIRE (LOCKED Y-AXIS)</div>
-                        <div class="chart-border-box">
-                            <div class="chart-wrapper" style="height: 260px;">
-                                <canvas id="isoLineChart"></canvas>
-                            </div>
-                        </div>
+                        <div class="chart-border-box"><div class="chart-wrapper" style="height: 260px;"><canvas id="isoLineChart"></canvas></div></div>
                     </div>
-
                     <div class="hmi-panel hmi-trajectoire" id="hmi-trajectoire-controls">
                         <div class="panel-header">2. EVALUATION SUR TRAJECTOIRE</div>
                         <div style="display: flex; gap: 10px;">
-                            <div class="control-group" style="flex: 1;">
-                                <label>EVAL SOUFFLAGE (0-601)</label>
-                                <input type="number" id="track_s_val" value="300" step="1">
-                                <input type="range" id="track_s_slide" min="0" max="601" value="300" step="1">
-                            </div>
-                            <div class="control-group" style="flex: 1;">
-                                <label>EVAL VITESSE (0-30)</label>
-                                <input type="number" id="track_vg_val" value="15" step="0.1">
-                                <input type="range" id="track_vg_slide" min="0" max="30" value="15" step="0.1">
-                            </div>
+                            <div class="control-group" style="flex: 1;"><label>EVAL SOUFFLAGE (0-601)</label><input type="number" id="track_s_val" value="300" step="1"><input type="range" id="track_s_slide" min="0" max="601" value="300" step="1"></div>
+                            <div class="control-group" style="flex: 1;"><label>EVAL VITESSE (0-30)</label><input type="number" id="track_vg_val" value="15" step="0.1"><input type="range" id="track_vg_slide" min="0" max="30" value="15" step="0.1"></div>
                         </div>
-
-                        <div style="margin-top: 15px; border-top: 1px dotted #888; padding-top: 10px;">
-                            <div class="panel-header" style="background: #555; font-size: 10px; margin: 0 -10px 10px -10px;">3. CONTRAINTES DE FONCTIONNEMENT</div>
+                        <div class="hmi-panel" style="margin-top: 15px;">
+                            <div class="panel-header">AUDIT MULTI-MODELES SUR TRAJECTOIRE (IA + PHYSIQUE)</div>
+                            <table class="hmi-table" id="iso-multi-model-table">
+                                <thead><tr><th>MODELE</th><th>T. SORTIE (C)</th><th>ELEC (MAD)</th><th>MAINT (MAD)</th><th>TOTAL PONDERE</th></tr></thead>
+                                <tbody>
+                                    <tr id="iso-row-physics"><td>Physique (Inverse)</td><td id="iso-phys-temp">--</td><td id="iso-phys-elec">--</td><td id="iso-phys-maint">--</td><td id="iso-phys-total">--</td></tr>
+                                    <tr id="iso-row-et"><td>IA: E. Trees</td><td id="iso-et-temp">--</td><td id="iso-et-elec">--</td><td id="iso-et-maint">--</td><td id="iso-et-total">--</td></tr>
+                                    <tr id="iso-row-rf"><td>IA: R. Forest</td><td id="iso-rf-temp">--</td><td id="iso-rf-elec">--</td><td id="iso-rf-maint">--</td><td id="iso-rf-total">--</td></tr>
+                                    <tr id="iso-row-xgb"><td>IA: XGBoost</td><td id="iso-xgb-temp">--</td><td id="iso-xgb-elec">--</td><td id="iso-xgb-maint">--</td><td id="iso-xgb-total">--</td></tr>
+                                    <tr class="highlight-row" style="background: #e0e0e0; border-top: 2px solid #000;"><td><strong>MOYENNE PONDÉRÉE</strong></td><td id="iso-avg-temp"><strong>--</strong></td><td id="iso-avg-elec"><strong>--</strong></td><td id="iso-avg-maint"><strong>--</strong></td><td id="iso-avg-total"><strong>--</strong></td></tr>
+                                </tbody>
+                            </table>
+                            <div style="margin-top: 15px; border-top: 1px dotted #888; padding-top: 10px; display: flex; align-items: center; gap: 15px;">
+                                <div style="flex: 1;"><label>ÉCART (MOYENNE - CIBLE)</label><div id="iso_temp_diff" class="digital-display" style="font-size: 16px; color: white;">--.-</div></div>
+                                <div style="flex: 1;"><label>TOLÉRANCE MAX (°C)</label><input type="number" id="iso_temp_tol" value="5.0" step="0.5" oninput="triggerIsoTempAudit()"></div>
+                                
+                                <div style="flex: 1.5; text-align: center;"><div id="iso_feasibility_status" style="font-weight: bold; font-size: 13px; padding: 8px; border: 2px solid transparent; background: #eee; color: #888;">EN ATTENTE D'EVALUATION...</div></div>
+                                
+                                <div id="constraint_error" style="color: red; font-weight: bold; font-size: 11px; margin-top: 8px; display: none;"></div>
+                            </div>
+                            </div>
                             <div style="display: flex; gap: 10px;">
                                 <div style="flex: 1;">
                                     <label>LIMITES SOUFFLAGE (S)</label>
@@ -444,12 +480,11 @@
                                 <div style="flex: 1;">
                                     <label>LIMITES VITESSE (Vg)</label>
                                     <div style="display: flex; gap: 5px;">
-                                        <input type="number" id="c_vg_min" value="0" placeholder="Min" onchange="updateConstraints()">
-                                        <input type="number" id="c_vg_max" value="30" placeholder="Max" onchange="updateConstraints()">
+                                        <input type="number" id="c_vg_min" value="0.1" step="0.1" placeholder="Min" onchange="updateConstraints()">
+                                        <input type="number" id="c_vg_max" value="30" step="0.1" placeholder="Max" onchange="updateConstraints()">
                                     </div>
                                 </div>
                             </div>
-                            <div id="constraint_error" style="color: red; font-weight: bold; font-size: 11px; margin-top: 8px; display: none;"></div>
                         </div>
                     </div>
                 </div>
@@ -459,18 +494,50 @@
         <div id="view-config" class="tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="font-weight: bold; font-size: 14px;">EDITEUR DE CONFIGURATION (user_config.json)</span>
-                <button class="btn-hmi" style="width: auto;" onclick="saveConfigToServer()">SAUVEGARDER SUR SERVEUR</button>
+                <div>
+                    <button type="button" class="btn-hmi" style="width: auto; background-color: #ffcccc; color: #a00; border-color: #ff0000; margin-right: 10px;" onclick="resetConfigToDefault()">RÉINITIALISER PAR DÉFAUT</button>
+                    <button type="button" class="btn-hmi" style="width: auto;" onclick="saveConfigToServer()">SAUVEGARDER SUR SERVEUR</button>
+                </div>
             </div>
             
             <div class="grid-config">
                 
+                <div class="hmi-panel" style="grid-column: 1 / -1;">
+                    <div class="panel-header" style="background: #555;">CALIBRATION DES CAPTEURS & RATIOS</div>
+                    <div style="display: flex; gap: 10px;">
+                        <div class="control-group" style="flex: 1; background: white; padding: 10px; border: var(--border-inset); border-color: var(--border-inset-color);">
+                            <label>OFFSET CAPTEUR TEMPÉRATURE (°C)</label>
+                            <span style="font-size: 9px; color: #666;">Différence moyenne (T_Réel - T_Capteur)</span>
+                            <input type="number" id="cfg_temp_offset" step="0.5" style="margin-top: 5px;">
+                        </div>
+                        <div class="control-group" style="flex: 1; background: white; padding: 10px; border: var(--border-inset); border-color: var(--border-inset-color);">
+                            <label>RATIO DE CONVERSION (FARINE -> CLINKER)</label>
+                            <span style="font-size: 9px; color: #666;">Pour calculer l'air spécifique (Tonne Farine / Tonne Clinker)</span>
+                            <input type="number" id="cfg_clinker_ratio" step="0.01" style="margin-top: 5px;">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <div class="control-group" style="flex: 1; background: white; padding: 10px; border: var(--border-inset); border-color: var(--border-inset-color);">
+                            <label>AMPLIFICATION COÛT ÉLECTRIQUE</label>
+                            <span style="font-size: 9px; color: #666;">Facteur de correction de la facture réelle (Défaut: 1.0)</span>
+                            <input type="number" id="cfg_k_elec" step="0.05" style="margin-top: 5px;">
+                        </div>
+                        <div class="control-group" style="flex: 1; background: white; padding: 10px; border: var(--border-inset); border-color: var(--border-inset-color);">
+                            <label>AMPLIFICATION COÛT MAINTENANCE</label>
+                            <span style="font-size: 9px; color: #666;">Facteur de correction des pièces de rechange (Défaut: 1.0)</span>
+                            <input type="number" id="cfg_k_maint" step="0.05" style="margin-top: 5px;">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="hmi-panel">
                     <div class="panel-header">MODELE ELECTRIQUE (FANS)</div>
-                    <div class="math-block">\[ P_{elec} = k_1 \cdot S^3 \cdot \left(k_2 - k_3 \frac{m}{v_g}\right) \]</div>
+                    <div class="math-block">\[ P_{elec} = k_1 \cdot S^{k_2} \cdot \left(k_3 + k_4 \frac{m}{v_g}\right) \]</div>
                     <div style="display: flex; gap: 5px;">
-                        <div class="control-group" style="flex: 1;"><label>Coef. k1</label><input type="number" id="cfg_k1" step="0.1"></div>
-                        <div class="control-group" style="flex: 1;"><label>Coef. k2</label><input type="number" id="cfg_k2" step="0.1"></div>
-                        <div class="control-group" style="flex: 1;"><label>Coef. k3</label><input type="number" id="cfg_k3" step="0.01"></div>
+                        <div class="control-group" style="flex: 1;"><label>Coef. k1</label><input type="number" id="cfg_k1" step="0.000001"></div>
+                        <div class="control-group" style="flex: 1;"><label>Coef. k2</label><input type="number" id="cfg_k2" step="0.0001"></div>
+                        <div class="control-group" style="flex: 1;"><label>Coef. k3</label><input type="number" id="cfg_k3" step="0.0001"></div>
+                        <div class="control-group" style="flex: 1;"><label>Coef. k4</label><input type="number" id="cfg_k4" step="0.000001"></div>
                     </div>
                     <div class="control-group"><label>PRIX ELECTRICITE (MAD/kWh)</label><input type="number" id="cfg_elec_price" step="0.05"></div>
                 </div>
@@ -488,147 +555,251 @@
                 <div class="hmi-panel">
                     <div class="panel-header">PARAMETRES SYSTEME & ALARMES DE SECURITE</div>
                     <div style="display: flex; gap: 10px;">
-                        
                         <div style="flex: 1; border: 1px solid #aaa; padding: 6px; background: #eee;">
-                            <div style="text-align: center; font-weight: bold; font-size: 10px; margin-bottom: 8px; color: #000080; border-bottom: 1px solid #aaa; padding-bottom: 4px;">
-                                SYSTÈME D'EXTRACTION (COÛTS)
-                            </div>
+                            <div style="text-align: center; font-weight: bold; font-size: 10px; margin-bottom: 8px; color: #000080; border-bottom: 1px solid #aaa; padding-bottom: 4px;">SYSTÈME D'EXTRACTION (COÛTS)</div>
                             <div class="control-group"><label>PRIX BANDE (MAD/m2)</label><input type="number" id="cfg_belt_price" step="10"></div>
                             <div class="control-group"><label>SURFACE REMPL. (m2)</label><input type="number" id="cfg_belt_area" step="5"></div>
                             <div class="control-group"><label>UTILISATION SYSTEME (0-1)</label><input type="number" id="cfg_system_util" step="0.01"></div>
                         </div>
-
                         <div style="flex: 1; border: 1px solid #f88; padding: 6px; background: #fee;">
-                            <div style="text-align: center; font-weight: bold; font-size: 10px; margin-bottom: 8px; color: #a00; border-bottom: 1px solid #f88; padding-bottom: 4px;">
-                                LIMITES PHYSIQUES (ALARMES)
-                            </div>
+                            <div style="text-align: center; font-weight: bold; font-size: 10px; margin-bottom: 8px; color: #a00; border-bottom: 1px solid #f88; padding-bottom: 4px;">LIMITES PHYSIQUES (ALARMES)</div>
                             <div class="control-group"><label>MAX T. SORTIE (C)</label><input type="number" id="cfg_max_temp" step="1"></div>
                             <div class="control-group"><label>MAX SOUFFLAGE</label><input type="number" id="cfg_max_s" step="100"></div>
                             <div class="control-group"><label>MAX VITESSE (Vg)</label><input type="number" id="cfg_max_vg" step="1"></div>
                         </div>
-
                     </div>
                 </div>
 
                 <div class="hmi-panel">
-                    <div class="panel-header">VARIABILITE DU PROCESSUS (MONTE CARLO)</div>
-                    <table style="font-size: 10px; width: 100%;">
-                        <thead><tr><th>Variable</th><th>Min</th><th>Max</th><th>Std (Total)</th><th>R2</th></tr></thead>
-                        <tbody id="cfg-var-tbody"></tbody>
-                    </table>
+                    <div class="panel-header">MODELE ARRHENIUS DES BANDES (PIECEWISE)</div>
+                    <div id="cfg-belts-container" style="display: flex; gap: 10px;"></div>
                 </div>
-            </div>
 
-            <div class="hmi-panel" style="margin-top: 10px;">
-                <div class="panel-header">MODELE ARRHENIUS DES BANDES (PIECEWISE)</div>
-                <div id="cfg-belts-container" style="display: flex; gap: 10px;"></div>
-            </div>
+                <div class="hmi-panel" style="grid-column: 1 / -1; margin-top: 10px;">
+                    <div class="panel-header">VARIABILITE DU PROCESSUS (MONTE CARLO)</div>
+                    <div style="display: flex; gap: 15px;">
+                        <div style="flex: 1.5;">
+                            <div style="background: #ccc; border-bottom: 1px solid #aaa; text-align: center; font-weight: bold; font-size: 10px; padding: 3px;">PARAMETRES D'ENTREE (BRUIT)</div>
+                            <table style="font-size: 10px; width: 100%;">
+                                <thead><tr><th>Variable</th><th>Min</th><th>Max</th><th>Std (Total)</th><th>R2 (Attribuable)</th></tr></thead>
+                                <tbody id="cfg-var-tbody"></tbody>
+                            </table>
+                        </div>
 
+                        <div style="flex: 1.2; border-left: 1px dotted #888; padding-left: 15px;">
+                            <div style="background: #ccc; border-bottom: 1px solid #aaa; text-align: center; font-weight: bold; font-size: 10px; padding: 3px;">PRECISION DES MODELES (SCORE R²)</div>
+                            <table style="font-size: 10px; width: 100%;">
+                                <thead><tr><th>MODELE</th><th>R² (TEMP)</th><th>R² (PUISS)</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Physique (Analytique)</td><td><input type="number" id="cfg_r2_t_analytical" step="0.01" max="1" min="0"></td><td><input type="number" id="cfg_r2_p_analytical" step="0.01" max="1" min="0"></td></tr>
+                                    <tr><td>IA: XGBoost</td><td><input type="number" id="cfg_r2_t_xgboost" step="0.01" max="1" min="0"></td><td><input type="number" id="cfg_r2_p_xgboost" step="0.01" max="1" min="0"></td></tr>
+                                    <tr><td>IA: Random Forest</td><td><input type="number" id="cfg_r2_t_rf" step="0.01" max="1" min="0"></td><td><input type="number" id="cfg_r2_p_rf" step="0.01" max="1" min="0"></td></tr>
+                                    <tr><td>IA: Extra Trees</td><td><input type="number" id="cfg_r2_t_et" step="0.01" max="1" min="0"></td><td><input type="number" id="cfg_r2_p_et" step="0.01" max="1" min="0"></td></tr>
+                                </tbody>
+                            </table>
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <div style="flex: 1;"><label style="font-size: 9px;">STD TOTAL HIST. (TEMP)</label><input type="number" id="cfg_std_tout" step="0.1"></div>
+                                <div style="flex: 1;"><label style="font-size: 9px;">STD TOTAL HIST. (PUISS)</label><input type="number" id="cfg_std_pow" step="0.1"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
     </div>
 
+    <div id="pdf-report-template" style="display: none; width: 210mm; min-height: 297mm; padding: 25mm 20mm; background: white; color: black; font-family: 'Times New Roman', Times, serif; box-sizing: border-box; font-size: 11pt; line-height: 1.4;">
+        
+        <div style="text-align: center; margin-bottom: 20mm; border-bottom: 2px solid black; padding-bottom: 10px;">
+            <div style="font-size: 18pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Rapport d'Expertise Thermique</div>
+            <div style="font-size: 14pt; margin-top: 5px;">Optimisation du Refroidisseur à Grilles - Aït Baha</div>
+            <div style="font-size: 10pt; margin-top: 10px; font-style: italic; color: #444;" id="pdf_date"></div>
+        </div>
+
+        <div style="text-align: justify; margin-bottom: 15mm; font-size: 10pt;">
+            Ce document présente les résultats de l'évaluation thermodynamique, de l'analyse stochastique de risque (méthode de Monte Carlo) et de l'optimisation robuste générés par le Jumeau Numérique. L'objectif est la minimisation de la CVaR (Expected Shortfall) sous contraintes physiques strictes (Arrhenius, Consigne de Température et Air Spécifique).
+        </div>
+
+        <h2 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px; text-transform: uppercase;">1. Diagnostic de l'État Actuel</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15mm; text-align: left;">
+            <thead>
+                <tr style="page-break-inside: avoid;">
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Paramètre Opératoire</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Valeur</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Indicateur de Sortie</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Valeur</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="page-break-inside: avoid;">
+                    <td style="padding: 6px; border-bottom: 1px solid #ddd;">Débit Farine Crue</td>
+                    <td id="pdf_in_m" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                    <td style="padding: 6px; border-bottom: 1px solid #ddd;">Température Clinker ($T_{out}$)</td>
+                    <td id="pdf_out_temp" style="padding: 6px; border-bottom: 1px solid #ddd; font-weight: bold; color: black;"></td>
+                </tr>
+                <tr style="page-break-inside: avoid;">
+                    <td style="padding: 6px; border-bottom: 1px solid #ddd;">Soufflage Total ($S$)</td>
+                    <td id="pdf_in_s" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                    <td style="padding: 6px; border-bottom: 1px solid #ddd;">Air Spécifique</td>
+                    <td id="pdf_out_air" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                </tr>
+                <tr style="page-break-inside: avoid;">
+                    <td style="padding: 6px; border-bottom: 1px solid black;">Vitesse Grilles ($v_g$)</td>
+                    <td id="pdf_in_vg" style="padding: 6px; border-bottom: 1px solid black; color: black;"></td>
+                    <td style="padding: 6px; border-bottom: 1px solid black;">Coût Spécifique</td>
+                    <td id="pdf_out_spec" style="padding: 6px; border-bottom: 1px solid black; font-weight: bold; color: black;"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px; text-transform: uppercase;">2. Analyse Stochastique Globale (Monte Carlo)</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15mm; text-align: center;">
+            <thead>
+                <tr style="page-break-inside: avoid;">
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px; text-align: left;">Indicateur Financier</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;"><span style="text-transform: none;">Moyenne $\mathbb{E}[X]$</span></th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;"><span style="text-transform: none;">Confort $P_{25}-P_{75}$</span></th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;"><span style="text-transform: none;">CVaR $95\%$</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="page-break-inside: avoid;">
+                    <td style="padding: 6px; border-bottom: 1px solid #ddd; text-align: left;">Coût Électrique (MAD/h)</td>
+                    <td id="pdf_mc_elec_mean" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                    <td id="pdf_mc_elec_iqr" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                    <td id="pdf_mc_elec_p95" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                </tr>
+                <tr style="page-break-inside: avoid;">
+                    <td style="padding: 6px; border-bottom: 1px solid #ddd; text-align: left;">Coût Maintenance (MAD/h)</td>
+                    <td id="pdf_mc_maint_mean" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                    <td id="pdf_mc_maint_iqr" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                    <td id="pdf_mc_maint_p95" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                </tr>
+                <tr style="page-break-inside: avoid;">
+                    <td style="padding: 6px; border-bottom: 1px solid #ddd; text-align: left; font-weight: bold;">Coût Total (MAD/h)</td>
+                    <td id="pdf_mc_total_mean" style="padding: 6px; border-bottom: 1px solid #ddd; font-weight: bold; color: black;"></td>
+                    <td id="pdf_mc_total_iqr" style="padding: 6px; border-bottom: 1px solid #ddd; color: black;"></td>
+                    <td id="pdf_mc_total_p95" style="padding: 6px; border-bottom: 1px solid #ddd; font-weight: bold; color: black;"></td>
+                </tr>
+                <tr style="page-break-inside: avoid;">
+                    <td style="padding: 6px; border-bottom: 1px solid black; text-align: left; font-weight: bold; color: #aa5500;">Coût Spécifique (MAD/t)</td>
+                    <td id="pdf_mc_spec_mean" style="padding: 6px; border-bottom: 1px solid black; font-weight: bold; color: #aa5500;"></td>
+                    <td id="pdf_mc_spec_iqr" style="padding: 6px; border-bottom: 1px solid black; color: #aa5500;"></td>
+                    <td id="pdf_mc_spec_p95" style="padding: 6px; border-bottom: 1px solid black; font-weight: bold; color: #aa5500;"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px; text-transform: uppercase;">3. Résultats d'Optimisation Multi-Critères</h2>
+        <p style="text-align: justify; margin-bottom: 10px; font-size: 10pt;">Le tableau ci-dessous expose les meilleures alternatives identifiées par l'algorithme génétique stochastique, classées par Score Robuste, tout en respectant les limites imposées (Air Spécifique et Tolérance Thermique).</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10mm; text-align: center;">
+            <thead>
+                <tr style="page-break-inside: avoid;">
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Rang</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">S (x10³ Nm³/h)</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Vg (mouv/min)</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Air Spéc.</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Temp. Sortie</th>
+                    <th style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 6px;">Coût Spéc.</th>
+                </tr>
+            </thead>
+            <tbody id="pdf_opt_table_body">
+                </tbody>
+        </table>
+
+        <div style="margin-top: 5mm; padding: 15px; background-color: #f4f4f4; border-left: 4px solid #000; page-break-inside: avoid;">
+            <strong style="font-size: 11pt; display: block; margin-bottom: 5px; color: black;">Recommandation du Système :</strong>
+            <div id="pdf_conclusion" style="text-align: justify; font-size: 10pt; line-height: 1.4; color: black;"></div>
+        </div>
+
+        <div style="margin-top: 20mm; font-size: 8pt; text-align: center; color: #777; border-top: 1px solid #ccc; padding-top: 5px;">
+            Document généré algorithmiquement par Clinker Twin // Expert System V1.0<br>
+            Validation requise par l'ingénieur de procédé avant application.
+        </div>
+    </div>
+
     <script>
-        // --- GESTION DU SERVEUR ---
-        let API_BASE = localStorage.getItem('cimar_api_url') || 'https://ckcexpertsys.pythonanywhere.com/api/v1';
+        let globalConfig = null;
+        let API_BASE = localStorage.getItem('cimar_api_url') || 'https://ckcexpertsys.pythonanywhere.com/api/v1/';
+
+        let pieChart, lineChart;
+        let smallPies = {};
+        
+        let mcSChartInstance = null; let mcVgChartInstance = null; let mcMChartInstance = null;
+        let mcTempChartInstance = null; let mcElecChartInstance = null; let mcMaintChartInstance = null;
+        let mcCostChartInstance = null; let mcScatterChartInstance = null; let mcSummaryPieChartInstance = null; let mcSpecScatterChartInstance = null; 
+
+        let autotuneHeatmapInstance = null;
+        let autotuneTempHeatmapInstance = null;
+        let tradeoffScatterInstance = null;
+        
+        let bestAutotuneSettings = null; 
+        let autotuneCandidates = []; 
+        let lastHeatmapData = null; 
+        let lastHeatmapTempData = null; 
+        let lastBestPoint = null;   
+
+        let isoEvalTimeout; 
+        let trajectorySlopeK = 0;
+        let active_s_min = 0, active_s_max = 601;
+        let active_vg_min = 0.1, active_vg_max = 30;
+
+        const inputKeys = [
+            { key: 'soufflage_S', label: 'S (x10³ Nm³/h)' }, { key: 'vitesse_grilles_vg', label: 'Vg (mouv/min)' },
+            { key: 'debit_clinker_m', label: 'm (t/h)' }, { key: 'clinker_inlet_temp_Tin', label: 'Tin (C)' }, { key: 'ambient_air_temp_Tamb', label: 'Tamb (C)' }
+        ];
+
+        window.onload = async () => { 
+            initServerDropdown(); initCharts(); checkHealth(); initLinkedSliders(); initMobileMenu(); initIsoTriggers();
+            try {
+                const res = await fetch(`${API_BASE}/config`, { cache: "no-store" });
+                const data = await res.json();
+                if (data.status === 'success') globalConfig = data.config;
+            } catch(e) {}
+        };
+        
+        function syncGlobalParams(fromAutotune = false) {
+            if (fromAutotune) {
+                document.getElementById('in_m').value = document.getElementById('auto_in_m').value;
+                document.getElementById('slide_m').value = document.getElementById('auto_in_m').value;
+                document.getElementById('in_alpha').value = document.getElementById('auto_in_alpha').value;
+                document.getElementById('in_beta').value = document.getElementById('auto_in_beta').value;
+            } else {
+                document.getElementById('auto_in_m').value = document.getElementById('in_m').value;
+                document.getElementById('auto_in_alpha').value = document.getElementById('in_alpha').value;
+                document.getElementById('auto_in_beta').value = document.getElementById('in_beta').value;
+            }
+        }
 
         function initServerDropdown() {
-            const select = document.getElementById('server-select');
-            let found = false;
-            for (let i = 0; i < select.options.length; i++) {
-                if (select.options[i].value === API_BASE) { select.selectedIndex = i; found = true; break; }
-            }
-            if (!found && API_BASE) {
-                const opt = document.createElement('option');
-                opt.value = API_BASE; opt.text = "--" + API_BASE;
-                select.add(opt, select.options[2]); select.selectedIndex = 2;
-            }
+            const select = document.getElementById('server-select'); let found = false;
+            for (let i = 0; i < select.options.length; i++) { if (select.options[i].value === API_BASE) { select.selectedIndex = i; found = true; break; } }
+            if (!found && API_BASE) { const opt = document.createElement('option'); opt.value = API_BASE; opt.text = "SERVEUR DISTANT"; select.add(opt, select.options[2]); select.selectedIndex = 2; }
         }
 
         function changeServer(newUrl) {
             if (newUrl === 'custom') {
-                const customUrl = prompt("Entrez l'URL de l'API (ex: http://192.168.1.100:5000/api/v1) :", API_BASE);
+                const customUrl = prompt("Entrez l'URL de l'API :", API_BASE);
                 if (customUrl && customUrl.trim() !== '') { API_BASE = customUrl.trim(); } else { initServerDropdown(); return; }
             } else { API_BASE = newUrl; }
             localStorage.setItem('cimar_api_url', API_BASE); initServerDropdown();
-            document.getElementById('link-status').innerText = 'TEST...';
-            document.getElementById('link-status').style.color = '#ffaa00';
-            document.getElementById('link-indicator').classList.remove('online');
+            document.getElementById('link-status').innerText = 'TEST...'; document.getElementById('link-status').style.color = '#f39c12'; document.getElementById('link-indicator').classList.remove('online');
             checkHealth();
         }
 
-        function setWeights(alpha, beta) {
-            document.getElementById('in_alpha').value = alpha.toFixed(1);
-            document.getElementById('in_beta').value = beta.toFixed(1);
-            evaluateDecision();
+        async function checkHealth() {
+            try {
+                const res = await fetch(`${API_BASE}/health`); const ind = document.getElementById('link-indicator');
+                if (res.ok) { document.getElementById('link-status').innerText = 'ONLINE'; document.getElementById('link-status').style.color = '#000'; ind.classList.add('online'); }
+                else throw new Error();
+            } catch (e) {
+                document.getElementById('link-status').innerText = 'OFFLINE'; document.getElementById('link-status').style.color = '#000'; document.getElementById('link-indicator').classList.remove('online');
+            }
         }
-
-        // --- CHARTS ---
-        let pieChart, lineChart;
-        let smallPies = {};
-
-        function createSmallPie(ctxId) {
-            return new Chart(document.getElementById(ctxId).getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: ['Elec', 'Maint'],
-                    datasets: [{ data: [50, 50], backgroundColor: ['#000080', '#ff0000'], borderWidth: 1, borderColor: '#fff' }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, animation: false, 
-                    plugins: { legend: { display: false }, title: { display: false }, tooltip: { enabled: false } },
-                    layout: { padding: 5 }
-                }
-            });
-        }
-
-        function initCharts() {
-            Chart.defaults.font.family = "'Arial', sans-serif";
-            Chart.defaults.color = "#000";
-
-            smallPies['analytical'] = createSmallPie('pie_analytical');
-            smallPies['xgboost'] = createSmallPie('pie_xgboost');
-            smallPies['rf'] = createSmallPie('pie_rf');
-            smallPies['extra_trees'] = createSmallPie('pie_extra_trees');
-
-            const ctxPie = document.getElementById('costPieChart').getContext('2d');
-            pieChart = new Chart(ctxPie, {
-                type: 'pie',
-                data: {
-                    labels: ['Electrique Pond.', 'Maintenance Pond.'],
-                    datasets: [{ data: [50, 50], backgroundColor: ['#000080', '#ff0000'], borderWidth: 1, borderColor: '#fff' }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right' } } }
-            });
-
-            const ctxLine = document.getElementById('isoLineChart').getContext('2d');
-            lineChart = new Chart(ctxLine, {
-                type: 'line',
-                data: {
-                    datasets: [
-                        { label: 'Ligne Iso-Temp', data: [], borderColor: '#000080', borderWidth: 2, pointRadius: 0, fill: false },
-                        { label: 'Point Actif', data: [], backgroundColor: '#ff0000', pointRadius: 6, borderWidth: 1, borderColor: '#000' }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, animation: false,
-                    scales: {
-                        x: { type: 'linear', title: { display: true, text: 'Vitesse Grilles (mouv/min)' }, min: 0, max: 30 },
-                        y: { type: 'linear', title: { display: true, text: 'Soufflage Total (Nm3/h)' }, min: 0, max: 601 }
-                    }
-                }
-            });
-        }
-
-        window.onload = async () => { 
-            initServerDropdown(); initCharts(); checkHealth(); initLinkedSliders(); 
-                // Charge silencieusement la config en arrière-plan au démarrage
-                try {
-                    const res = await fetch(`${API_BASE}/config`);
-                    const data = await res.json();
-                    if (data.status === 'success') globalConfig = data.config;
-                } catch(e) {}
-            };
+        setInterval(checkHealth, 5000);
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -637,294 +808,300 @@
             document.getElementById(`view-${tabId}`).classList.add('active');
         }
 
-        async function checkHealth() {
-            try {
-                const res = await fetch(`${API_BASE}/health`);
-                const ind = document.getElementById('link-indicator');
-                if (res.ok) { document.getElementById('link-status').innerText = 'ONLINE'; document.getElementById('link-status').style.color = '#000'; ind.classList.add('online'); }
-                else throw new Error();
-            } catch (e) {
-                document.getElementById('link-status').innerText = 'OFFLINE'; document.getElementById('link-status').style.color = '#000';
-                document.getElementById('link-indicator').classList.remove('online');
+        function setWeights(alpha, beta) { document.getElementById('in_alpha').value = alpha.toFixed(1); document.getElementById('in_beta').value = beta.toFixed(1); evaluateDecision(); }
+
+        function initMobileMenu() {
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle'); const mobileNavGroup = document.getElementById('mobile-nav-group'); 
+            if(mobileMenuToggle && mobileNavGroup) {
+                mobileMenuToggle.addEventListener('click', function() { mobileNavGroup.classList.toggle('menu-open'); });
+                mobileNavGroup.querySelectorAll('.hmi-tabs button').forEach(button => { button.addEventListener('click', () => { if (window.innerWidth <= 800) mobileNavGroup.classList.remove('menu-open'); }); });
             }
         }
-        setInterval(checkHealth, 5000);
+
+        function createSmallPie(ctxId) { 
+            return new Chart(document.getElementById(ctxId).getContext('2d'), { 
+                type: 'pie', 
+                data: { labels: ['Elec', 'Maint'], datasets: [{ data: [50, 50], backgroundColor: ['#2c3e50', '#e74c3c'], borderWidth: 1, borderColor: '#fff' }] }, 
+                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false }, title: { display: false }, tooltip: { enabled: false } }, layout: { padding: 5 } } 
+            }); 
+        }
+
+        function initCharts() {
+            Chart.defaults.font.family = "'Arial', sans-serif"; Chart.defaults.color = "#000";
+
+            smallPies['analytical'] = createSmallPie('pie_analytical'); smallPies['xgboost'] = createSmallPie('pie_xgboost'); smallPies['rf'] = createSmallPie('pie_rf'); smallPies['extra_trees'] = createSmallPie('pie_extra_trees');
+            pieChart = new Chart(document.getElementById('costPieChart').getContext('2d'), { 
+                type: 'pie', 
+                data: { labels: ['Electrique Pond.', 'Maintenance Pond.'], datasets: [{ data: [50, 50], backgroundColor: ['#2c3e50', '#e74c3c'], borderWidth: 1, borderColor: '#fff' }] }, 
+                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right' } } } 
+            });
+            lineChart = new Chart(document.getElementById('isoLineChart').getContext('2d'), { type: 'line', data: { datasets: [{ label: 'Ligne Iso-Temp', data: [], borderColor: '#000080', borderWidth: 2, pointRadius: 0, fill: false }, { label: 'Point Actif', data: [], backgroundColor: '#ff0000', pointRadius: 6, borderWidth: 1, borderColor: '#000' }] }, options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: { type: 'linear', title: { display: true, text: 'Vitesse Grilles (mouv/min)' }, min: 0, max: 30 }, y: { type: 'linear', title: { display: true, text: 'Soufflage Total S (x10³ Nm³/h)' }, min: 0, max: 601 } } } });
+        }
 
         async function evaluateDecision() {
-            const alpha = parseFloat(document.getElementById('in_alpha').value);
-            const beta = parseFloat(document.getElementById('in_beta').value);
-            const kiln_feed = parseFloat(document.getElementById('in_m').value);
-
+            const alpha = parseFloat(document.getElementById('in_alpha').value.replace(',', '.')); const beta = parseFloat(document.getElementById('in_beta').value.replace(',', '.')); const kiln_feed = parseFloat(document.getElementById('in_m').value.replace(',', '.'));
             const payload = {
-                fan_speed: parseFloat(document.getElementById('in_s').value),
-                grate_speed: parseFloat(document.getElementById('in_vg').value),
-                kiln_feed: kiln_feed,
-                alpha: alpha, beta: beta,
-                model_weights: {
-                    temperature: {
-                        analytical: parseFloat(document.getElementById('w_temp_analytical').value),
-                        xgboost: parseFloat(document.getElementById('w_temp_xgboost').value),
-                        rf: parseFloat(document.getElementById('w_temp_rf').value),
-                        extra_trees: parseFloat(document.getElementById('w_temp_extra_trees').value)
-                    },
-                    power: {
-                        analytical: parseFloat(document.getElementById('w_pow_analytical').value),
-                        xgboost: parseFloat(document.getElementById('w_pow_xgboost').value),
-                        rf: parseFloat(document.getElementById('w_pow_rf').value),
-                        extra_trees: parseFloat(document.getElementById('w_pow_extra_trees').value)
-                    }
-                }
+                fan_speed: parseFloat(document.getElementById('in_s').value.replace(',', '.')), grate_speed: parseFloat(document.getElementById('in_vg').value.replace(',', '.')), kiln_feed: kiln_feed, alpha: alpha, beta: beta,
+                model_weights: { temperature: { analytical: parseFloat(document.getElementById('w_temp_analytical').value), xgboost: parseFloat(document.getElementById('w_temp_xgboost').value), rf: parseFloat(document.getElementById('w_temp_rf').value), extra_trees: parseFloat(document.getElementById('w_temp_extra_trees').value) }, power: { analytical: parseFloat(document.getElementById('w_pow_analytical').value), xgboost: parseFloat(document.getElementById('w_pow_xgboost').value), rf: parseFloat(document.getElementById('w_pow_rf').value), extra_trees: parseFloat(document.getElementById('w_pow_extra_trees').value) } }
             };
 
+            let data;
             try {
-                const response = await fetch(`${API_BASE}/evaluate`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
-                const data = await response.json();
+                const response = await fetch(`${API_BASE}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error("HTTP error");
+                data = await response.json();
+            } catch (error) { console.error("API Error", error); return; }
+
+            try {
                 if (data.status === 'success') {
-                    const mmBody = document.getElementById('multi-model-tbody');
-                    mmBody.innerHTML = '';
+                    const mmBody = document.getElementById('multi-model-tbody'); mmBody.innerHTML = '';
                     const formatName = { 'analytical': 'Physique', 'xgboost': 'IA: XGBoost', 'rf': 'IA: R. Forest', 'extra_trees': 'IA: E. Trees' };
-
                     for (const [algo, res] of Object.entries(data.evaluation.models)) {
-                        mmBody.innerHTML += `<tr>
-                            <td style="font-weight: bold;">${formatName[algo] || algo}</td>
-                            <td>${res.temperature_out.toFixed(1)}</td>
-                            <td>${res.electrical_cost.toFixed(1)}</td>
-                            <td>${res.maintenance_cost.toFixed(1)}</td>
-                            <td>${res.weighted_cost ? res.weighted_cost.toFixed(1) : res.total_weighted_cost.toFixed(1)}</td>
-                        </tr>`;
-
-                        if (smallPies[algo]) {
-                            smallPies[algo].data.datasets[0].data = [res.electrical_cost * alpha, res.maintenance_cost * beta];
-                            smallPies[algo].update('none');
-                        }
+                        mmBody.innerHTML += `<tr><td style="font-weight: bold;">${formatName[algo] || algo}</td><td>${res.temperature_out.toFixed(1)}</td><td>${res.electrical_cost.toFixed(1)}</td><td>${res.maintenance_cost.toFixed(1)}</td><td>${res.weighted_cost ? res.weighted_cost.toFixed(1) : res.total_weighted_cost.toFixed(1)}</td></tr>`;
+                        if (smallPies[algo]) { smallPies[algo].data.datasets[0].data = [res.electrical_cost * alpha, res.maintenance_cost * beta]; smallPies[algo].update('none'); }
                     }
-                    
                     const avg = data.evaluation.current_point;
-                    mmBody.innerHTML += `<tr style="background: #e0e0e0; border-top: 2px solid #000;">
-                        <td style="font-weight: bold; color: #000080;">MOYENNE PONDÉRÉE</td>
-                        <td style="font-weight: bold;">${avg.temperature_out.toFixed(1)}</td>
-                        <td style="font-weight: bold;">${avg.electrical_cost.toFixed(1)}</td>
-                        <td style="font-weight: bold;">${avg.maintenance_cost.toFixed(1)}</td>
-                        <td style="font-weight: bold; color: #000080;">${avg.weighted_cost.toFixed(1)}</td>
-                    </tr>`;
+                    mmBody.innerHTML += `<tr style="background: #e0e0e0; border-top: 2px solid #000;"><td style="font-weight: bold; color: var(--color-primary);">MOYENNE PONDÉRÉE</td><td style="font-weight: bold;">${avg.temperature_out.toFixed(1)}</td><td style="font-weight: bold;">${avg.electrical_cost.toFixed(1)}</td><td style="font-weight: bold;">${avg.maintenance_cost.toFixed(1)}</td><td style="font-weight: bold; color: var(--color-primary);">${avg.weighted_cost.toFixed(1)}</td></tr>`;
 
-                    const tempEl = document.getElementById('out_temp');
-                    tempEl.innerText = avg.temperature_out.toFixed(1);
-                    // Va chercher la limite dynamique, ou utilise 250 par défaut si non trouvée
-                    let max_temp_limit = (globalConfig && globalConfig.limits) ? globalConfig.limits.clinker_temp.output_max : 250;
-                    tempEl.style.color = avg.temperature_out > max_temp_limit ? '#ff0000' : '#00ff00';
+                    const tempEl = document.getElementById('out_temp'); tempEl.innerText = avg.temperature_out.toFixed(1);
+                    tempEl.style.color = avg.temperature_out > ((globalConfig && globalConfig.limits) ? globalConfig.limits.clinker_temp.output_max : 250) ? '#e74c3c' : '#27ae60';
                     
-                    document.getElementById('out_cost_total').innerText = avg.weighted_cost.toFixed(1);
-                    const specific_cost = avg.weighted_cost / (kiln_feed / 1.6);
-                    document.getElementById('out_cost_spec').innerText = specific_cost.toFixed(2);
+                    const ratio = (globalConfig && globalConfig.process_variability && globalConfig.process_variability.clinker_to_meal_ratio) ? globalConfig.process_variability.clinker_to_meal_ratio : 1.6;
+                    document.getElementById('out_cost_total').innerText = avg.weighted_cost.toFixed(1); 
+                    document.getElementById('out_cost_spec').innerText = (avg.weighted_cost / (kiln_feed / ratio)).toFixed(2);
+                    document.getElementById('out_air_spec').innerText = ((payload.fan_speed * ratio) / kiln_feed).toFixed(2);
 
-                    pieChart.data.datasets[0].data = [avg.electrical_cost * alpha, avg.maintenance_cost * beta];
-                    pieChart.update('none');
+                    pieChart.data.datasets[0].data = [avg.electrical_cost * alpha, avg.maintenance_cost * beta]; pieChart.update('none');
 
-                    const tbody = document.getElementById('belt-table-body');
-                    tbody.innerHTML = '';
+                    const tbody = document.getElementById('belt-table-body'); tbody.innerHTML = '';
                     data.evaluation.belt_lifetimes.forEach(belt => {
                         let safeLife = belt.estimated_remaining_life_h > 999999 ? "∞" : belt.estimated_remaining_life_h.toFixed(0);
-                        let color = belt.estimated_remaining_life_h < 1000 ? 'red' : 'black';
-                        tbody.innerHTML += `<tr>
-                            <td>${belt.name}</td>
-                            <td>${(belt.absolute_utilization_rate * 100).toFixed(1)}%</td>
-                            <td style="color: ${color}; font-weight: bold;">${safeLife}</td>
-                        </tr>`;
+                        tbody.innerHTML += `<tr><td>${belt.name}</td><td>${(belt.absolute_utilization_rate * 100).toFixed(1)}%</td><td style="color: ${belt.estimated_remaining_life_h < 1000 ? '#e74c3c' : 'black'}; font-weight: bold;">${safeLife}</td></tr>`;
                     });
 
                     const alarmPanel = document.getElementById('alarm-panel');
-                    if (data.evaluation.warnings && data.evaluation.warnings.length > 0) {
-                        alarmPanel.style.display = 'block'; document.getElementById('alarm-container').innerHTML = data.evaluation.warnings.join('<br><br>');
-                    } else { alarmPanel.style.display = 'none'; }
+                    if (data.evaluation.warnings && data.evaluation.warnings.length > 0) { alarmPanel.style.display = 'block'; document.getElementById('alarm-container').innerHTML = data.evaluation.warnings.join('<br><br>'); } else { alarmPanel.style.display = 'none'; }
                 }
-            } catch (error) { console.error("Fetch failed", error); }
+            } catch (error) { console.error("UI Update Error", error); }
         }
 
-        // --- TAB 2: ISO-TEMP (AVEC CONTRAINTES) ---
-        let trajectorySlopeK = 0;
-        let active_s_min = 0, active_s_max = 601;
-        let active_vg_min = 0, active_vg_max = 30;
+        // ==========================================
+        // ONGLET ISO-TEMPERATURE LOGIC (NETTOYE)
+        // ==========================================
+        function updateIsoAuditTable(data) {
+            const models = data.evaluation.models; const avg = data.evaluation.current_point;
+            const getTotalCost = (mod) => mod.weighted_cost !== undefined ? mod.weighted_cost : mod.total_weighted_cost;
+            document.getElementById('iso-phys-temp').innerText = models.analytical.temperature_out.toFixed(1); document.getElementById('iso-phys-elec').innerText = models.analytical.electrical_cost.toFixed(1); document.getElementById('iso-phys-maint').innerText = models.analytical.maintenance_cost.toFixed(1); document.getElementById('iso-phys-total').innerText = getTotalCost(models.analytical).toFixed(1);
+            document.getElementById('iso-et-temp').innerText = models.extra_trees.temperature_out.toFixed(1); document.getElementById('iso-et-elec').innerText = models.extra_trees.electrical_cost.toFixed(1); document.getElementById('iso-et-maint').innerText = models.extra_trees.maintenance_cost.toFixed(1); document.getElementById('iso-et-total').innerText = getTotalCost(models.extra_trees).toFixed(1);
+            document.getElementById('iso-rf-temp').innerText = models.rf.temperature_out.toFixed(1); document.getElementById('iso-rf-elec').innerText = models.rf.electrical_cost.toFixed(1); document.getElementById('iso-rf-maint').innerText = models.rf.maintenance_cost.toFixed(1); document.getElementById('iso-rf-total').innerText = getTotalCost(models.rf).toFixed(1);
+            document.getElementById('iso-xgb-temp').innerText = models.xgboost.temperature_out.toFixed(1);
+            const xgbElec = models.xgboost.electrical_cost !== undefined ? models.xgboost.electrical_cost : models.analytical.electrical_cost;
+            document.getElementById('iso-xgb-elec').innerText = xgbElec.toFixed(1); document.getElementById('iso-xgb-maint').innerText = models.xgboost.maintenance_cost.toFixed(1); document.getElementById('iso-xgb-total').innerText = getTotalCost(models.xgboost).toFixed(1);
+            document.getElementById('iso-avg-temp').innerText = avg.temperature_out.toFixed(1); document.getElementById('iso-avg-elec').innerText = avg.electrical_cost.toFixed(1); document.getElementById('iso-avg-maint').innerText = avg.maintenance_cost.toFixed(1); document.getElementById('iso-avg-total').innerText = avg.weighted_cost.toFixed(1);
+
+            const targetTemp = parseFloat(document.getElementById('iso_target').value.replace(',', '.'));
+            const tolerance = parseFloat(document.getElementById('iso_temp_tol').value.replace(',', '.')) || 5.0;
+
+            if (!isNaN(targetTemp)) {
+                const signedDiff = avg.temperature_out - targetTemp; 
+                const diffEl = document.getElementById('iso_temp_diff'); const statusEl = document.getElementById('iso_feasibility_status');
+                diffEl.innerText = (signedDiff > 0 ? "+" : "") + signedDiff.toFixed(1) + " °C";
+                if (Math.abs(signedDiff) > tolerance) {
+                    diffEl.style.color = "#e74c3c"; statusEl.innerHTML = "CIBLE IRRÉALISABLE<br><span style='font-size:10px; font-weight:normal;'>L'IA contredit la physique sous ces conditions</span>"; statusEl.style.backgroundColor = "#fadbd8"; statusEl.style.color = "#c0392b"; statusEl.style.borderColor = "#e74c3c";
+                } else {
+                    diffEl.style.color = "#27ae60"; statusEl.innerHTML = "TRAJECTOIRE VALIDE<br><span style='font-size:10px; font-weight:normal;'>Consensus IA + Modèle Physique respecté</span>"; statusEl.style.backgroundColor = "#eef8ee"; statusEl.style.color = "#27ae60"; statusEl.style.borderColor = "#27ae60";
+                }
+            }
+        }
+
+        async function triggerIsoTempAudit() {
+            const track_s_val = document.getElementById('track_s_val');
+            const track_vg_val = document.getElementById('track_vg_val');
+            const iso_m = document.getElementById('iso_m');
+            const in_alpha = document.getElementById('in_alpha');
+            const in_beta = document.getElementById('in_beta');
+
+            if (!track_s_val || !track_vg_val || !iso_m) return;
+
+            const payload = {
+                fan_speed: parseFloat(track_s_val.value.replace(',', '.')), 
+                grate_speed: parseFloat(track_vg_val.value.replace(',', '.')), 
+                kiln_feed: parseFloat(iso_m.value.replace(',', '.')),
+                alpha: in_alpha ? parseFloat(in_alpha.value.replace(',', '.')) : 1.0, 
+                beta: in_beta ? parseFloat(in_beta.value.replace(',', '.')) : 1.0,
+                model_weights: { 
+                    temperature: { analytical: 1.0, xgboost: 1.0, rf: 1.0, extra_trees: 1.0 }, 
+                    power: { analytical: 1.0, xgboost: 1.0, rf: 1.0, extra_trees: 1.0 } 
+                }
+            };
+            try {
+                const response = await fetch(`${API_BASE}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error("Erreur HTTP");
+                const data = await response.json();
+                updateIsoAuditTable(data);
+            } catch (error) { console.error("Audit IA Error", error); }
+        }
+
+        function initIsoTriggers() {
+            [document.getElementById('track_s_slide'), document.getElementById('track_s_val'), document.getElementById('track_vg_slide'), document.getElementById('track_vg_val'), document.getElementById('iso_m')].forEach(el => {
+                if(el) { 
+                    el.addEventListener('input', () => { clearTimeout(isoEvalTimeout); isoEvalTimeout = setTimeout(triggerIsoTempAudit, 300); }); 
+                    el.addEventListener('change', () => { clearTimeout(isoEvalTimeout); isoEvalTimeout = setTimeout(triggerIsoTempAudit, 300); }); 
+                }
+            });
+        }
 
         async function evaluateIsoTemp() {
-            const s_val = document.getElementById('iso_s').value;
-            const vg_val = document.getElementById('iso_vg').value;
-            const payload = {
-                target_temperature: parseFloat(document.getElementById('iso_target').value),
-                kiln_feed: parseFloat(document.getElementById('iso_m').value)
-            };
-            if (s_val) payload.fan_speed = parseFloat(s_val);
-            if (vg_val) payload.grate_speed = parseFloat(vg_val);
+            const target = parseFloat(document.getElementById('iso_target').value.replace(',', '.'));
+            const m = parseFloat(document.getElementById('iso_m').value.replace(',', '.'));
+            
+            // Start from the current slider position
+            const s_val = parseFloat(document.getElementById('track_s_val').value) || 300.0;
+            const payload = { target_temperature: target, kiln_feed: m, fan_speed: s_val };
+
+            let data;
+            try {
+                const response = await fetch(`${API_BASE}/evaluate/iso-temp`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error("HTTP error");
+                data = await response.json();
+            } catch (error) { console.error(error); alert("Erreur réseau: Impossible de contacter le serveur."); return; }
 
             try {
-                const response = await fetch(`${API_BASE}/evaluate/iso-temp`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
-                const data = await response.json();
-                
                 if (data.status === 'success') {
-                    const res = data.iso_temperature_data;
+                    const res = data.iso_temperature_data; 
                     trajectorySlopeK = res.iso_slope_K;
-
                     document.getElementById('iso_out_k').innerText = trajectorySlopeK.toFixed(4);
-                    document.getElementById('iso_out_s').innerText = res.S_required.toFixed(1);
-                    document.getElementById('iso_out_vg').innerText = res.vg_required.toFixed(2);
-                    document.getElementById('iso_out_cost').innerText = res.total_cost.toFixed(2);
 
                     const lineData = [];
                     for(let vg = 0; vg <= 30; vg += 2) { 
-                        let s_calc = vg * trajectorySlopeK;
-                        if (s_calc > 601) { lineData.push({x: 601 / trajectorySlopeK, y: 601}); break; }
+                        let s_calc = vg * trajectorySlopeK; 
+                        if (s_calc > 601) { lineData.push({x: 601 / trajectorySlopeK, y: 601}); break; } 
                         lineData.push({x: vg, y: s_calc}); 
                     }
-                    lineChart.data.datasets[0].data = lineData;
-                    lineChart.update('none');
+                    lineChart.data.datasets[0].data = lineData; lineChart.update('none');
 
-                    const trackGroup = document.getElementById('hmi-trajectoire-controls');
-                    trackGroup.classList.add('active');
+                    document.getElementById('hmi-trajectoire-controls').classList.add('active'); 
                     
+                    // We removed the hardcoded limits here, and call the function instead!
                     updateConstraints();
-                    let clamped = clampTrajectoryFromS(res.S_required);
-                    applySliderUI(clamped.s, clamped.vg);
+                    triggerIsoTempAudit();
                 } else { alert('Erreur: ' + data.message); }
-            } catch (error) { alert('Serveur inaccessible.'); }
+            } catch (error) { console.error("Erreur mise à jour UI (Iso-Temp):", error); }
         }
 
+        // RESTORED FUNCTION
         function updateConstraints() {
             const errEl = document.getElementById('constraint_error');
-            const s_min = parseFloat(document.getElementById('c_s_min').value);
+            const s_min = parseFloat(document.getElementById('c_s_min').value); 
             const s_max = parseFloat(document.getElementById('c_s_max').value);
-            const vg_min = parseFloat(document.getElementById('c_vg_min').value);
+            const vg_min = parseFloat(document.getElementById('c_vg_min').value); 
             const vg_max = parseFloat(document.getElementById('c_vg_max').value);
 
-            if (s_min >= s_max) { errEl.innerText = "ERREUR : S Min doit être inférieur à S Max."; errEl.style.display = "block"; return; }
-            if (vg_min >= vg_max) { errEl.innerText = "ERREUR : Vg Min doit être inférieur à Vg Max."; errEl.style.display = "block"; return; }
-            
-            let max_possible_s = vg_max * trajectorySlopeK;
-            let min_possible_s = vg_min * trajectorySlopeK;
-            if (trajectorySlopeK > 0 && (s_min > max_possible_s || s_max < min_possible_s)) {
-                errEl.innerText = "ALARM : Ces contraintes ne croisent jamais la trajectoire actuelle (Slope K) !"; 
-                errEl.style.display = "block"; return;
+            if (s_min >= s_max || vg_min >= vg_max) { 
+                errEl.innerText = "ERREUR : Min doit être inférieur à Max."; 
+                errEl.style.display = "block"; 
+                return; 
+            }
+            if (trajectorySlopeK > 0 && (s_min > vg_max * trajectorySlopeK || s_max < vg_min * trajectorySlopeK)) { 
+                errEl.innerText = "ALARM : Ces contraintes ne croisent jamais la trajectoire !"; 
+                errEl.style.display = "block"; 
+                return; 
             }
 
-            errEl.style.display = "none";
-            active_s_min = s_min; active_s_max = s_max;
+            errEl.style.display = "none"; 
+            active_s_min = s_min; active_s_max = s_max; 
             active_vg_min = vg_min; active_vg_max = vg_max;
-
-            document.getElementById('track_s_slide').min = s_min; document.getElementById('track_s_slide').max = s_max;
-            document.getElementById('track_vg_slide').min = vg_min; document.getElementById('track_vg_slide').max = vg_max;
-
-            let current_s = parseFloat(document.getElementById('track_s_val').value);
-            let clamped = clampTrajectoryFromS(current_s);
+            
+            document.getElementById('track_s_slide').min = s_min; 
+            document.getElementById('track_s_slide').max = s_max; 
+            document.getElementById('track_vg_slide').min = vg_min; 
+            document.getElementById('track_vg_slide').max = vg_max;
+            
+            let clamped = clampTrajectoryFromS(parseFloat(document.getElementById('track_s_val').value)); 
             applySliderUI(clamped.s, clamped.vg);
         }
 
         function clampTrajectoryFromS(s_val) {
-            let s = Math.max(active_s_min, Math.min(s_val, active_s_max));
+            if (!trajectorySlopeK) return {s: s_val, vg: parseFloat(document.getElementById('track_vg_val').value)};
+            let s = Math.max(active_s_min, Math.min(s_val, active_s_max)); 
             let vg = s / trajectorySlopeK;
-            if (vg > active_vg_max) { vg = active_vg_max; s = vg * trajectorySlopeK; }
+            if (vg > active_vg_max) { vg = active_vg_max; s = vg * trajectorySlopeK; } 
             if (vg < active_vg_min) { vg = active_vg_min; s = vg * trajectorySlopeK; }
             return {s: s, vg: vg};
         }
 
         function clampTrajectoryFromVg(vg_val) {
-            let vg = Math.max(active_vg_min, Math.min(vg_val, active_vg_max));
+            if (!trajectorySlopeK) return {s: parseFloat(document.getElementById('track_s_val').value), vg: vg_val};
+            let vg = Math.max(active_vg_min, Math.min(vg_val, active_vg_max)); 
             let s = vg * trajectorySlopeK;
-            if (s > active_s_max) { s = active_s_max; vg = s / trajectorySlopeK; }
+            if (s > active_s_max) { s = active_s_max; vg = s / trajectorySlopeK; } 
             if (s < active_s_min) { s = active_s_min; vg = s / trajectorySlopeK; }
             return {s: s, vg: vg};
         }
 
         function initLinkedSliders() {
-            const sSlide = document.getElementById('track_s_slide'); const sVal = document.getElementById('track_s_val');
-            const vgSlide = document.getElementById('track_vg_slide'); const vgVal = document.getElementById('track_vg_val');
-
-            sSlide.addEventListener('input', () => { let res = clampTrajectoryFromS(parseFloat(sSlide.value)); applySliderUI(res.s, res.vg); });
-            sVal.addEventListener('change', () => { let res = clampTrajectoryFromS(parseFloat(sVal.value)); applySliderUI(res.s, res.vg); });
-            vgSlide.addEventListener('input', () => { let res = clampTrajectoryFromVg(parseFloat(vgSlide.value)); applySliderUI(res.s, res.vg); });
-            vgVal.addEventListener('change', () => { let res = clampTrajectoryFromVg(parseFloat(vgVal.value)); applySliderUI(res.s, res.vg); });
+            document.getElementById('track_s_slide').addEventListener('input', (e) => { let res = clampTrajectoryFromS(parseFloat(e.target.value)); applySliderUI(res.s, res.vg); });
+            document.getElementById('track_s_val').addEventListener('change', (e) => { let res = clampTrajectoryFromS(parseFloat(e.target.value)); applySliderUI(res.s, res.vg); });
+            document.getElementById('track_vg_slide').addEventListener('input', (e) => { let res = clampTrajectoryFromVg(parseFloat(e.target.value)); applySliderUI(res.s, res.vg); });
+            document.getElementById('track_vg_val').addEventListener('change', (e) => { let res = clampTrajectoryFromVg(parseFloat(e.target.value)); applySliderUI(res.s, res.vg); });
         }
 
         function applySliderUI(s, vg) {
             if (isNaN(s) || isNaN(vg)) return;
             document.getElementById('track_s_slide').value = s.toFixed(0); document.getElementById('track_s_val').value = s.toFixed(0);
             document.getElementById('track_vg_slide').value = vg.toFixed(1); document.getElementById('track_vg_val').value = vg.toFixed(1);
-            lineChart.data.datasets[1].data = [{x: vg, y: s}];
-            lineChart.update('none'); 
+            lineChart.data.datasets[1].data = [{x: vg, y: s}]; lineChart.update('none'); 
         }
 
-        // --- TAB 3: CONFIGURATION ---
-        const varKeys = [
-            { key: 'soufflage_S', label: 'S (Nm3/h)' },
-            { key: 'vitesse_grilles_vg', label: 'Vg (mouv/min)' },
-            { key: 'debit_clinker_m', label: 'm (t/h)' },
-            { key: 'clinker_inlet_temp_Tin', label: 'Tin (C)' },
-            { key: 'ambient_air_temp_Tamb', label: 'Tamb (C)' },
-            { key: 'clinker_outlet_temp_Tout', label: 'Tout (C)' }
-        ];
-
+        // --- CONFIG LOGIC ---
         async function loadConfigToForm() {
             try {
-                const response = await fetch(`${API_BASE}/config`);
+                const response = await fetch(`${API_BASE}/config`, { cache: "no-store" });
+                if (!response.ok) return;
                 const data = await response.json();
                 if (data.status === 'success') {
                     globalConfig = data.config; 
                     
-                    document.getElementById('cfg_k1').value = globalConfig.power_model.k1;
-                    document.getElementById('cfg_k2').value = globalConfig.power_model.k2;
-                    document.getElementById('cfg_k3').value = globalConfig.power_model.k3;
+                    document.getElementById('cfg_temp_offset').value = (globalConfig.process_variability && globalConfig.process_variability.sensor_temp_offset) || 0; 
+                    document.getElementById('cfg_clinker_ratio').value = (globalConfig.process_variability && globalConfig.process_variability.clinker_to_meal_ratio) || 1.6;
+                    document.getElementById('cfg_k_elec').value = (globalConfig.costs && globalConfig.costs.electrical_cost_multiplier) || 1.0;
+                    document.getElementById('cfg_k_maint').value = (globalConfig.costs && globalConfig.costs.maintenance_cost_multiplier) || 1.0;
+
+                    document.getElementById('cfg_k1').value = globalConfig.power_model.k1; 
+                    document.getElementById('cfg_k2').value = globalConfig.power_model.k2; 
+                    document.getElementById('cfg_k3').value = globalConfig.power_model.k3; 
+                    document.getElementById('cfg_k4').value = globalConfig.power_model.k4 !== undefined ? globalConfig.power_model.k4 : 0.0023896876; 
+                    
                     document.getElementById('cfg_elec_price').value = globalConfig.costs.electricity_price_kwh;
+                    document.getElementById('cfg_cs').value = globalConfig.temperature_model.coeff_soufflage; document.getElementById('cfg_tamb').value = globalConfig.process_variability.ambient_air_temp_Tamb.nominal_mean; document.getElementById('cfg_tin').value = globalConfig.process_variability.clinker_inlet_temp_Tin.nominal_mean;
+                    document.getElementById('cfg_belt_price').value = globalConfig.costs.belt_price_per_m2; document.getElementById('cfg_belt_area').value = globalConfig.costs.average_replacement_area_m2; document.getElementById('cfg_system_util').value = globalConfig.extraction_system.total_utilization_rate;
                     
-                    document.getElementById('cfg_cs').value = globalConfig.temperature_model.coeff_soufflage;
-                    document.getElementById('cfg_tamb').value = globalConfig.process_variability.ambient_air_temp_Tamb.nominal_mean;
-                    document.getElementById('cfg_tin').value = globalConfig.process_variability.clinker_inlet_temp_Tin.nominal_mean;
+                    if (globalConfig.limits) { document.getElementById('cfg_max_temp').value = globalConfig.limits.clinker_temp.output_max; document.getElementById('cfg_max_s').value = globalConfig.limits.fan_speed_total.max; document.getElementById('cfg_max_vg').value = globalConfig.limits.grate_speed.max; }
 
-                    document.getElementById('cfg_belt_price').value = globalConfig.costs.belt_price_per_m2;
-                    document.getElementById('cfg_belt_area').value = globalConfig.costs.average_replacement_area_m2;
-                    document.getElementById('cfg_system_util').value = globalConfig.extraction_system.total_utilization_rate;
-                    
-                    if (globalConfig.limits) {
-                        document.getElementById('cfg_max_temp').value = globalConfig.limits.clinker_temp.output_max;
-                        document.getElementById('cfg_max_s').value = globalConfig.limits.fan_speed_total.max;
-                        document.getElementById('cfg_max_vg').value = globalConfig.limits.grate_speed.max;
-                    }
-
-                    const varBody = document.getElementById('cfg-var-tbody');
-                    varBody.innerHTML = '';
-                    varKeys.forEach(v => {
-                        let dat = globalConfig.process_variability[v.key];
-                        if(!dat) {
-                            dat = { min: null, max: null, std_total: 0, r2_assignable: 0 };
-                            globalConfig.process_variability[v.key] = dat;
-                        }
-                        varBody.innerHTML += `<tr>
-                            <td>${v.label}</td>
-                            <td><input type="number" id="cfg_var_${v.key}_min" value="${dat.min !== null && dat.min !== undefined ? dat.min : ''}"></td>
-                            <td><input type="number" id="cfg_var_${v.key}_max" value="${dat.max !== null && dat.max !== undefined ? dat.max : ''}"></td>
-                            <td><input type="number" id="cfg_var_${v.key}_std" value="${dat.std_total}"></td>
-                            <td><input type="number" id="cfg_var_${v.key}_r2" value="${dat.r2_assignable}" step="0.01"></td>
-                        </tr>`;
+                    const varBody = document.getElementById('cfg-var-tbody'); varBody.innerHTML = '';
+                    inputKeys.forEach(v => {
+                        let dat = globalConfig.process_variability[v.key] || { min: null, max: null, std_total: 0, r2_assignable: 0 };
+                        varBody.innerHTML += `<tr><td>${v.label}</td><td><input type="number" id="cfg_var_${v.key}_min" value="${dat.min !== null ? dat.min : ''}"></td><td><input type="number" id="cfg_var_${v.key}_max" value="${dat.max !== null ? dat.max : ''}"></td><td><input type="number" id="cfg_var_${v.key}_std" value="${dat.std_total}"></td><td><input type="number" id="cfg_var_${v.key}_r2" value="${dat.r2_assignable}" step="0.01"></td></tr>`;
                     });
 
-                    const beltContainer = document.getElementById('cfg-belts-container');
-                    beltContainer.innerHTML = '';
+                    let r2t = (globalConfig.process_variability['clinker_outlet_temp_Tout'] || {}).r2_models || {};
+                    document.getElementById('cfg_std_tout').value = (globalConfig.process_variability['clinker_outlet_temp_Tout'] || {}).std_total || 0;
+                    document.getElementById('cfg_r2_t_analytical').value = r2t.analytical || 0; document.getElementById('cfg_r2_t_xgboost').value = r2t.xgboost || 0; document.getElementById('cfg_r2_t_rf').value = r2t.rf || 0; document.getElementById('cfg_r2_t_et').value = r2t.extra_trees || 0;
+
+                    let r2p = (globalConfig.process_variability['electrical_power_Pelec'] || {}).r2_models || {};
+                    document.getElementById('cfg_std_pow').value = (globalConfig.process_variability['electrical_power_Pelec'] || {}).std_total || 0;
+                    document.getElementById('cfg_r2_p_analytical').value = r2p.analytical || 0; document.getElementById('cfg_r2_p_xgboost').value = r2p.xgboost || 0; document.getElementById('cfg_r2_p_rf').value = r2p.rf || 0; document.getElementById('cfg_r2_p_et').value = r2p.extra_trees || 0;
+
+                    const beltContainer = document.getElementById('cfg-belts-container'); beltContainer.innerHTML = '';
                     globalConfig.belts.forEach((belt, index) => {
-                        beltContainer.innerHTML += `
-                            <div style="flex: 1; background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 8px;">
-                                <div style="font-weight: bold; margin-bottom: 5px; color: #000080;">ID: ${belt.id} - ${belt.name}</div>
-                                <div class="control-group"><label>Utilisation Relative</label><input type="number" id="cfg_belt_use_${index}" value="${belt.relative_use_rate}" step="0.01"></div>
-                                <div class="control-group"><label>Act. Energy (Ea)</label><input type="number" id="cfg_belt_ea_${index}" value="${belt.arrhenius.activation_energy_j_mol || ''}"></div>
-                                <hr style="border-top: 1px dotted #ccc; margin: 5px 0;">
-                                ${[1, 2, 3].map(pt => `
-                                    <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                                        <div style="flex: 1;"><label style="font-size: 9px;">Pt ${pt} T°C</label><input type="number" id="cfg_belt_${index}_ref_${pt}_t" value="${(belt.arrhenius[`reference_point_${pt}`] && belt.arrhenius[`reference_point_${pt}`].temperature_c) || ''}"></div>
-                                        <div style="flex: 1;"><label style="font-size: 9px;">Pt ${pt} Vie(H)</label><input type="number" id="cfg_belt_${index}_ref_${pt}_l" value="${(belt.arrhenius[`reference_point_${pt}`] && belt.arrhenius[`reference_point_${pt}`].lifetime_h) || ''}"></div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
+                        beltContainer.innerHTML += `<div style="flex: 1; background: white; border: var(--border-inset); border-color: var(--border-inset-color); padding: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: var(--color-primary);">ID: ${belt.id} - ${belt.name}</div>
+                            <div class="control-group"><label>Utilisation Relative</label><input type="number" id="cfg_belt_use_${index}" value="${belt.relative_use_rate}" step="0.01"></div>
+                            <div class="control-group"><label>Act. Energy (Ea)</label><input type="number" id="cfg_belt_ea_${index}" value="${belt.arrhenius.activation_energy_j_mol || ''}"></div><hr style="border-top: 1px dotted #ccc; margin: 5px 0;">
+                            ${[1, 2, 3].map(pt => `<div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                                <div style="flex: 1;"><label style="font-size: 9px;">Pt ${pt} T°C</label><input type="number" id="cfg_belt_${index}_ref_${pt}_t" value="${(belt.arrhenius[`reference_point_${pt}`] && belt.arrhenius[`reference_point_${pt}`].temperature_c) || ''}"></div>
+                                <div style="flex: 1;"><label style="font-size: 9px;">Pt ${pt} Vie(H)</label><input type="number" id="cfg_belt_${index}_ref_${pt}_l" value="${(belt.arrhenius[`reference_point_${pt}`] && belt.arrhenius[`reference_point_${pt}`].lifetime_h) || ''}"></div>
+                            </div>`).join('')}</div>`;
                     });
                 }
             } catch (error) { console.error('Error loading config:', error); }
@@ -932,58 +1109,593 @@
 
         async function saveConfigToServer() {
             if (!globalConfig) return alert("Config non chargee.");
+            
+            if(!globalConfig.process_variability) globalConfig.process_variability = {};
+            globalConfig.process_variability.sensor_temp_offset = parseFloat(document.getElementById('cfg_temp_offset').value) || 0;
+            globalConfig.process_variability.clinker_to_meal_ratio = parseFloat(document.getElementById('cfg_clinker_ratio').value) || 1.6;
 
-            globalConfig.power_model.k1 = parseFloat(document.getElementById('cfg_k1').value);
-            globalConfig.power_model.k2 = parseFloat(document.getElementById('cfg_k2').value);
-            globalConfig.power_model.k3 = parseFloat(document.getElementById('cfg_k3').value);
+            if(!globalConfig.costs) globalConfig.costs = {};
+            globalConfig.costs.electrical_cost_multiplier = parseFloat(document.getElementById('cfg_k_elec').value) || 1.0;
+            globalConfig.costs.maintenance_cost_multiplier = parseFloat(document.getElementById('cfg_k_maint').value) || 1.0;
+
+            globalConfig.power_model.k1 = parseFloat(document.getElementById('cfg_k1').value); 
+            globalConfig.power_model.k2 = parseFloat(document.getElementById('cfg_k2').value); 
+            globalConfig.power_model.k3 = parseFloat(document.getElementById('cfg_k3').value); 
+            globalConfig.power_model.k4 = parseFloat(document.getElementById('cfg_k4').value); 
+            
             globalConfig.costs.electricity_price_kwh = parseFloat(document.getElementById('cfg_elec_price').value);
-
-            globalConfig.temperature_model.coeff_soufflage = parseFloat(document.getElementById('cfg_cs').value);
-            globalConfig.process_variability.ambient_air_temp_Tamb.nominal_mean = parseFloat(document.getElementById('cfg_tamb').value);
-            globalConfig.process_variability.clinker_inlet_temp_Tin.nominal_mean = parseFloat(document.getElementById('cfg_tin').value);
-
-            globalConfig.costs.belt_price_per_m2 = parseFloat(document.getElementById('cfg_belt_price').value);
-            globalConfig.costs.average_replacement_area_m2 = parseFloat(document.getElementById('cfg_belt_area').value);
-            globalConfig.extraction_system.total_utilization_rate = parseFloat(document.getElementById('cfg_system_util').value);
-
+            globalConfig.temperature_model.coeff_soufflage = parseFloat(document.getElementById('cfg_cs').value); globalConfig.process_variability.ambient_air_temp_Tamb.nominal_mean = parseFloat(document.getElementById('cfg_tamb').value); globalConfig.process_variability.clinker_inlet_temp_Tin.nominal_mean = parseFloat(document.getElementById('cfg_tin').value);
+            globalConfig.costs.belt_price_per_m2 = parseFloat(document.getElementById('cfg_belt_price').value); globalConfig.costs.average_replacement_area_m2 = parseFloat(document.getElementById('cfg_belt_area').value); globalConfig.extraction_system.total_utilization_rate = parseFloat(document.getElementById('cfg_system_util').value);
             if (!globalConfig.limits) globalConfig.limits = { clinker_temp: {}, fan_speed_total: {}, grate_speed: {} };
-            globalConfig.limits.clinker_temp.output_max = parseFloat(document.getElementById('cfg_max_temp').value);
-            globalConfig.limits.fan_speed_total.max = parseFloat(document.getElementById('cfg_max_s').value);
-            globalConfig.limits.grate_speed.max = parseFloat(document.getElementById('cfg_max_vg').value);
+            globalConfig.limits.clinker_temp.output_max = parseFloat(document.getElementById('cfg_max_temp').value); globalConfig.limits.fan_speed_total.max = parseFloat(document.getElementById('cfg_max_s').value); globalConfig.limits.grate_speed.max = parseFloat(document.getElementById('cfg_max_vg').value);
 
-            varKeys.forEach(v => {
+            inputKeys.forEach(v => {
                 if (!globalConfig.process_variability[v.key]) globalConfig.process_variability[v.key] = {};
                 const dat = globalConfig.process_variability[v.key];
-                
-                const minV = document.getElementById(`cfg_var_${v.key}_min`).value;
-                const maxV = document.getElementById(`cfg_var_${v.key}_max`).value;
-                if(minV !== '') dat.min = parseFloat(minV); else dat.min = null;
-                if(maxV !== '') dat.max = parseFloat(maxV); else dat.max = null;
-                dat.std_total = parseFloat(document.getElementById(`cfg_var_${v.key}_std`).value) || 0;
-                dat.r2_assignable = parseFloat(document.getElementById(`cfg_var_${v.key}_r2`).value) || 0;
+                const minV = document.getElementById(`cfg_var_${v.key}_min`).value; const maxV = document.getElementById(`cfg_var_${v.key}_max`).value;
+                dat.min = minV !== '' ? parseFloat(minV) : null; dat.max = maxV !== '' ? parseFloat(maxV) : null;
+                dat.std_total = parseFloat(document.getElementById(`cfg_var_${v.key}_std`).value) || 0; dat.r2_assignable = parseFloat(document.getElementById(`cfg_var_${v.key}_r2`).value) || 0;
             });
+
+            if (!globalConfig.process_variability['clinker_outlet_temp_Tout']) globalConfig.process_variability['clinker_outlet_temp_Tout'] = {};
+            globalConfig.process_variability['clinker_outlet_temp_Tout'].std_total = parseFloat(document.getElementById('cfg_std_tout').value) || 0;
+            globalConfig.process_variability['clinker_outlet_temp_Tout'].r2_models = { analytical: parseFloat(document.getElementById('cfg_r2_t_analytical').value) || 0, xgboost: parseFloat(document.getElementById('cfg_r2_t_xgboost').value) || 0, rf: parseFloat(document.getElementById('cfg_r2_t_rf').value) || 0, extra_trees: parseFloat(document.getElementById('cfg_r2_t_et').value) || 0 };
+
+            if (!globalConfig.process_variability['electrical_power_Pelec']) globalConfig.process_variability['electrical_power_Pelec'] = {};
+            globalConfig.process_variability['electrical_power_Pelec'].std_total = parseFloat(document.getElementById('cfg_std_pow').value) || 0;
+            globalConfig.process_variability['electrical_power_Pelec'].r2_models = { analytical: parseFloat(document.getElementById('cfg_r2_p_analytical').value) || 0, xgboost: parseFloat(document.getElementById('cfg_r2_p_xgboost').value) || 0, rf: parseFloat(document.getElementById('cfg_r2_p_rf').value) || 0, extra_trees: parseFloat(document.getElementById('cfg_r2_p_et').value) || 0 };
 
             globalConfig.belts.forEach((belt, index) => {
                 belt.relative_use_rate = parseFloat(document.getElementById(`cfg_belt_use_${index}`).value);
                 const ea = document.getElementById(`cfg_belt_ea_${index}`).value;
                 if (ea) belt.arrhenius.activation_energy_j_mol = parseFloat(ea); else delete belt.arrhenius.activation_energy_j_mol;
-                
                 [1, 2, 3].forEach(pt => {
-                    const temp = document.getElementById(`cfg_belt_${index}_ref_${pt}_t`).value;
-                    const life = document.getElementById(`cfg_belt_${index}_ref_${pt}_l`).value;
-                    if (temp && life) belt.arrhenius[`reference_point_${pt}`] = { temperature_c: parseFloat(temp), lifetime_h: parseFloat(life) };
-                    else delete belt.arrhenius[`reference_point_${pt}`];
+                    const temp = document.getElementById(`cfg_belt_${index}_ref_${pt}_t`).value; const life = document.getElementById(`cfg_belt_${index}_ref_${pt}_l`).value;
+                    if (temp && life) belt.arrhenius[`reference_point_${pt}`] = { temperature_c: parseFloat(temp), lifetime_h: parseFloat(life) }; else delete belt.arrhenius[`reference_point_${pt}`];
                 });
             });
 
             try {
-                const response = await fetch(`${API_BASE}/config`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(globalConfig)
-                });
+                const response = await fetch(`${API_BASE}/config`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(globalConfig) });
                 const data = await response.json();
-                if (data.status === 'success') alert('Configuration sauvegardee.');
-                else alert('Erreur: ' + data.message);
+                if (data.status === 'success') alert('Configuration sauvegardee avec succes !'); else alert('Erreur: ' + data.message);
             } catch (error) { alert('Serveur inaccessible.'); }
+        }
+
+        async function resetConfigToDefault() {
+            if (!confirm("ATTENTION : Cela va effacer toutes modifications... Continuer ?")) return;
+            try {
+                const response = await fetch(`${API_BASE}/config/reset`, { method: 'POST' });
+                const data = await response.json();
+                if (data.status === 'success') { alert('Restaurée avec succès !'); loadConfigToForm(); } else { alert('Erreur : ' + data.message); }
+            } catch (error) { alert('Serveur inaccessible.'); }
+        }
+
+        async function runMonteCarlo() {
+            const statusEl = document.getElementById('mc_status');
+            statusEl.innerText = "SIMULATION EN COURS (Calcul vectoriel numpy)..."; statusEl.style.color = "#d35400";
+
+            const payload = {
+                fan_speed: parseFloat(document.getElementById('in_s').value.replace(',', '.')), grate_speed: parseFloat(document.getElementById('in_vg').value.replace(',', '.')), kiln_feed: parseFloat(document.getElementById('in_m').value.replace(',', '.')), alpha: parseFloat(document.getElementById('in_alpha').value.replace(',', '.')), beta: parseFloat(document.getElementById('in_beta').value.replace(',', '.')), iterations: parseInt(document.getElementById('mc_iterations').value),
+                model_weights: {
+                    temperature: { analytical: parseFloat(document.getElementById('w_temp_analytical').value), xgboost: parseFloat(document.getElementById('w_temp_xgboost').value), rf: parseFloat(document.getElementById('w_temp_rf').value), extra_trees: parseFloat(document.getElementById('w_temp_extra_trees').value) },
+                    power: { analytical: parseFloat(document.getElementById('w_pow_analytical').value), xgboost: parseFloat(document.getElementById('w_pow_xgboost').value), rf: parseFloat(document.getElementById('w_pow_rf').value), extra_trees: parseFloat(document.getElementById('w_pow_extra_trees').value) }
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/evaluate/monte-carlo`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error("HTTP error");
+                const data = await response.json();
+                if (data.status === 'success') {
+                    statusEl.innerText = `TERMINÉ : ${data.monte_carlo.iterations} itérations analysées.`; statusEl.style.color = "#27ae60";
+                    renderMonteCarloTable(data.monte_carlo.metrics);
+                    renderMonteCarloCharts(data.monte_carlo.distributions, data.monte_carlo.scatter, data.monte_carlo.metrics, data.monte_carlo.global_curve);
+                } else { statusEl.innerText = "ERREUR."; statusEl.style.color = "#e74c3c"; alert(data.message); }
+            } catch (error) { console.error("Erreur UI Monte Carlo:", error); statusEl.innerText = "ERREUR D'AFFICHAGE DES GRAPHIQUES."; statusEl.style.color = "#e74c3c"; }
+        }
+
+        function renderMonteCarloTable(metrics) {
+            const tbody = document.getElementById('mc-tbody'); tbody.innerHTML = '';
+            const fmt = (val, dec) => val.toFixed(dec); const fmtRange = (arr, dec) => `[ ${fmt(arr[0], dec)} <span style="color:#aaa;">→</span> ${fmt(arr[1], dec)} ]`;
+
+            const rows = [
+                { label: "Température Sortie (°C)", key: "temperature", dec: 1 }, { label: "Coût Électrique (MAD/h)", key: "electrical_cost", dec: 1 },
+                { label: "Coût Maintenance (MAD/h)", key: "maintenance_cost", dec: 1 }, { label: "COÛT TOTAL PONDÉRÉ", key: "total_cost", dec: 1, isBold: true },
+                { label: "COÛT SPÉCIFIQUE (MAD/t Clinker)", key: "specific_cost", dec: 2, isBold: true, color: "#d35400" } 
+            ];
+
+            rows.forEach(r => {
+                const m = metrics[r.key];
+                const styleBold = r.isBold ? 'font-weight: bold; font-size: 13px; border-top: 2px solid #888;' : '';
+                const styleName = r.isBold ? `font-weight: bold; color: var(--color-primary);` : 'font-weight: bold;';
+                tbody.innerHTML += `<tr style="${styleBold}"><td style="text-align: left; ${styleName}">${r.label}</td><td style="color: #27ae60; font-weight: bold; font-size: 13px;">${fmt(m.mean, r.dec)}</td><td style="font-family: var(--font-mono);">${fmtRange(m.iqr_25_75, r.dec)}</td><td style="font-family: var(--font-mono); color: #885500;">${fmtRange(m.guarantee_2_97, r.dec)}</td><td style="font-family: var(--font-mono); color: #c0392b; font-weight: bold;">${fmtRange(m.tail_risk_95_100, r.dec)}</td></tr>`;
+            });
+        }
+
+        function renderMonteCarloCharts(distributions, scatterData, metrics, globalCurve) {
+            document.getElementById('mc_charts_wrapper').style.display = 'flex';
+
+            const colors = { 'ensemble': { border: 'rgba(0, 0, 0, 1)', bg: 'rgba(0, 0, 0, 0.1)', width: 3 }, 'analytical': { border: 'rgba(44, 62, 80, 0.8)', bg: 'rgba(44, 62, 80, 0.2)', width: 1.5 }, 'xgboost': { border: 'rgba(39, 174, 96, 0.8)', bg: 'rgba(39, 174, 96, 0.2)', width: 1.5 }, 'rf': { border: 'rgba(211, 84, 0, 0.8)', bg: 'rgba(211, 84, 0, 0.2)', width: 1.5 }, 'extra_trees': { border: 'rgba(142, 68, 173, 0.8)', bg: 'rgba(142, 68, 173, 0.2)', width: 1.5 } };
+            const formatNames = { 'ensemble': 'Moyenne / Entrée', 'analytical': 'Physique', 'xgboost': 'XGBoost', 'rf': 'R. Forest', 'extra_trees': 'E. Trees' };
+
+            function buildChart(ctxId, chartInstance, dataDict, xLabel, hideLegend = false) {
+                if (chartInstance) chartInstance.destroy();
+                if (!dataDict || !dataDict['ensemble'] || !dataDict['ensemble'].bins || dataDict['ensemble'].bins.length === 0) return null;
+                const datasets = [];
+                const labels = dataDict['ensemble'].bins.map(b => b.toFixed(1));
+                for (const [algo, hist] of Object.entries(dataDict)) {
+                    if (!hist || !hist.bins || hist.bins.length === 0) continue;
+                    datasets.push({ label: formatNames[algo] || algo, data: hist.counts, borderColor: colors[algo]?.border || '#000', backgroundColor: colors[algo]?.bg || 'transparent', borderWidth: colors[algo]?.width || 1, fill: algo === 'ensemble', tension: 0.4, pointRadius: 0 });
+                }
+                return new Chart(document.getElementById(ctxId).getContext('2d'), { type: 'line', data: { labels: labels, datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, scales: { x: { title: { display: true, text: xLabel } }, y: { display: false } }, plugins: { legend: { display: !hideLegend, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } } } } });
+            }
+
+            mcSChartInstance = buildChart('mcSChart', mcSChartInstance, distributions.s, 'Soufflage S', true); mcVgChartInstance = buildChart('mcVgChart', mcVgChartInstance, distributions.vg, 'Vitesse Vg', true); mcMChartInstance = buildChart('mcMChart', mcMChartInstance, distributions.m, 'Débit m', true);
+            mcTempChartInstance = buildChart('mcTempChart', mcTempChartInstance, distributions.temperature, 'Température (°C)'); mcElecChartInstance = buildChart('mcElecChart', mcElecChartInstance, distributions.electrical_cost, 'MAD/h'); mcMaintChartInstance = buildChart('mcMaintChart', mcMaintChartInstance, distributions.maintenance_cost, 'MAD/h'); mcCostChartInstance = buildChart('mcCostChart', mcCostChartInstance, distributions.total_cost, 'Coût Total (MAD/h)');
+
+            if (mcScatterChartInstance) mcScatterChartInstance.destroy();
+            mcScatterChartInstance = new Chart(document.getElementById('mcScatterChart').getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { type: 'line', label: 'Courbe Théorique Globale', data: globalCurve || [], borderColor: 'rgba(0, 0, 0, 0.8)', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.4 },
+                        { type: 'scatter', label: 'Nuage Monte Carlo', data: scatterData, backgroundColor: 'rgba(231, 76, 60, 0.5)', borderColor: 'rgba(192, 57, 43, 0.8)', pointRadius: 3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: { type: 'linear', title: { display: true, text: 'Température Sortie (°C)' } }, y: { type: 'linear', title: { display: true, text: 'Coût Total (MAD/h)' } } }, plugins: { legend: { display: true, position: 'bottom' } } }
+            });
+
+            const specScatterData = scatterData.map(pt => ({ x: pt.m, y: pt.spec }));
+            if (mcSpecScatterChartInstance) mcSpecScatterChartInstance.destroy();
+            mcSpecScatterChartInstance = new Chart(document.getElementById('mcSpecScatterChart').getContext('2d'), {
+                type: 'scatter',
+                data: { datasets: [{ label: 'Nuage (Débit vs Coût/t)', data: specScatterData, backgroundColor: 'rgba(243, 156, 18, 0.5)', borderColor: 'rgba(211, 84, 0, 0.8)', pointRadius: 3 }] },
+                options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: { type: 'linear', title: { display: true, text: 'Débit Farine Crue (t/h)' } }, y: { type: 'linear', title: { display: true, text: 'Coût Spécifique (MAD/t Clinker)' } } }, plugins: { legend: { display: false } } }
+            });
+
+            if (mcSummaryPieChartInstance) mcSummaryPieChartInstance.destroy();
+            mcSummaryPieChartInstance = new Chart(document.getElementById('mcSummaryPieChart').getContext('2d'), {
+                type: 'pie',
+                data: { labels: ['Électricité', 'Maintenance'], datasets: [{ data: [metrics.electrical_cost.mean, metrics.maintenance_cost.mean], backgroundColor: ['#2c3e50', '#e74c3c'], borderWidth: 1, borderColor: '#fff' }] },
+                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function(c) { return (c.label ? c.label + ': ' : '') + (c.parsed !== null ? c.parsed.toFixed(1) + ' MAD/h' : ''); } } } } }
+            });
+        }
+
+        function toggleAutoLock(varName) {
+            const isLocked = document.getElementById(`auto_${varName}_lock`).checked;
+            document.getElementById(`auto_${varName}_min`).disabled = isLocked;
+            document.getElementById(`auto_${varName}_max`).disabled = isLocked;
+            document.getElementById(`auto_${varName}_val`).disabled = !isLocked;
+            if(isLocked) {
+                document.getElementById(`auto_${varName}_min`).style.background = '#eee';
+                document.getElementById(`auto_${varName}_max`).style.background = '#eee';
+                document.getElementById(`auto_${varName}_val`).style.background = 'white';
+            } else {
+                document.getElementById(`auto_${varName}_min`).style.background = 'white';
+                document.getElementById(`auto_${varName}_max`).style.background = 'white';
+                document.getElementById(`auto_${varName}_val`).style.background = '#eee';
+            }
+        }
+
+        async function runAutotune() {
+            const statusEl = document.getElementById('autotune_status');
+            statusEl.innerText = "RECHERCHE EN COURS (Exploration de la grille & Survie Monte Carlo)...";
+            statusEl.style.color = "#d35400";
+
+            let wMeanVal = parseFloat(document.getElementById('auto_w_mean').value);
+            let wRiskVal = parseFloat(document.getElementById('auto_w_risk').value);
+            wMeanVal = isNaN(wMeanVal) ? 1.0 : wMeanVal;
+            wRiskVal = isNaN(wRiskVal) ? 0.0 : wRiskVal;
+
+            const payload = {
+                kiln_feed: parseFloat(document.getElementById('auto_in_m').value.replace(',', '.')),
+                alpha: parseFloat(document.getElementById('auto_in_alpha').value.replace(',', '.')), 
+                beta: parseFloat(document.getElementById('auto_in_beta').value.replace(',', '.')),
+                model_weights: {
+                    temperature: { analytical: parseFloat(document.getElementById('w_temp_analytical').value), xgboost: parseFloat(document.getElementById('w_temp_xgboost').value), rf: parseFloat(document.getElementById('w_temp_rf').value), extra_trees: parseFloat(document.getElementById('w_temp_extra_trees').value) },
+                    power: { analytical: parseFloat(document.getElementById('w_pow_analytical').value), xgboost: parseFloat(document.getElementById('w_pow_xgboost').value), rf: parseFloat(document.getElementById('w_pow_rf').value), extra_trees: parseFloat(document.getElementById('w_pow_extra_trees').value) }
+                },
+                robust_weights: { 
+                    mean: wMeanVal, 
+                    risk: wRiskVal,
+                    grid_res_coarse: parseInt(document.getElementById('hp_grid_coarse').value) || 30,
+                    grid_res_fine: parseInt(document.getElementById('hp_grid_fine').value) || 50,
+                    mc_iters_coarse: parseInt(document.getElementById('hp_mc_coarse').value) || 50,
+                    mc_iters_fine: parseInt(document.getElementById('hp_mc_fine').value) || 5000,
+                    num_candidates_sim: parseInt(document.getElementById('hp_cand_sim').value) || 5,
+                    num_candidates_show: parseInt(document.getElementById('hp_cand_show').value) || 3,
+                    risk_percentile: parseFloat(document.getElementById('hp_risk_perc').value) || 95.0
+                },
+                constraints: {
+                    S: {
+                        locked: document.getElementById('auto_s_lock').checked,
+                        min: parseFloat(document.getElementById('auto_s_min').value), max: parseFloat(document.getElementById('auto_s_max').value), value: parseFloat(document.getElementById('auto_s_val').value)
+                    },
+                    vg: {
+                        locked: document.getElementById('auto_vg_lock').checked,
+                        min: parseFloat(document.getElementById('auto_vg_min').value), max: parseFloat(document.getElementById('auto_vg_max').value), value: parseFloat(document.getElementById('auto_vg_val').value)
+                    },
+                    spec_air: { 
+                        min: parseFloat(document.getElementById('auto_air_min').value),
+                        max: parseFloat(document.getElementById('auto_air_max').value)
+                    },
+                    temperature: {
+                        min: parseFloat(document.getElementById('auto_temp_min').value),
+                        max: parseFloat(document.getElementById('auto_temp_max').value)
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/optimize/grid`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    statusEl.innerText = "OPTIMUM TROUVÉ !"; statusEl.style.color = "#27ae60";
+                    
+                    bestAutotuneSettings = data.optimization.best_point; 
+                    autotuneCandidates = data.optimization.top_candidates; 
+                    lastHeatmapData = data.optimization.heatmap; 
+                    lastHeatmapTempData = data.optimization.heatmap_temp;
+                    lastBestPoint = bestAutotuneSettings;
+                    
+                    renderTopCandidates(autotuneCandidates);
+
+                    let costs = lastHeatmapData.map(d => d.cost).filter(c => c !== null);
+                    document.getElementById('contour_min').value = Math.floor(Math.min(...costs));
+                    document.getElementById('contour_max').value = Math.ceil(Math.max(...costs));
+                    
+                    renderAutotuneHeatmap(data.optimization.heatmap, data.optimization.heatmap_temp, bestAutotuneSettings);
+                    renderTradeoffScatter(data.optimization.scatter_tradeoff, bestAutotuneSettings);
+                    
+                    syncGlobalParams(false);
+                } else {
+                    statusEl.innerText = "ÉCHEC."; statusEl.style.color = "#e74c3c";
+                    alert(data.message);
+                }
+            } catch(e) {
+                statusEl.innerText = "ERREUR DE CONNEXION."; statusEl.style.color = "#e74c3c";
+                console.error("Erreur détaillée :", e);
+            }
+        }
+
+        function renderTopCandidates(candidates) {
+            const container = document.getElementById('top-candidates-container');
+            container.innerHTML = ''; 
+            
+            candidates.forEach((cand, index) => {
+                let isTop = index === 0;
+                let borderColor = isTop ? 'var(--color-primary)' : '#bdc3c7';
+                let headerBg = isTop ? '#e6f2ff' : '#f8f9fa';
+                let title = isTop ? 'OPTIMUM ABSOLU' : `ALTERNATIVE #${index + 1}`;
+                
+                let html = `
+                <div style="border: 2px solid ${borderColor}; margin-bottom: 15px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="background: ${headerBg}; padding: 5px; font-weight: bold; text-align: center; border-bottom: 1px solid ${borderColor}; color: var(--color-primary);">
+                        ${title} <span style="font-size: 10px; font-weight: normal; color: #7f8c8d;">(Score: ${cand.robust_score.toFixed(1)})</span>
+                    </div>
+                    <div style="padding: 10px;">
+                        <table style="font-size: 13px; margin-bottom: 10px; width: 100%;">
+                            <tbody>
+                                <tr><td style="font-weight: bold; background: #f8f9fa; width: 50%;">SOUFFLAGE (S)</td><td class="digital-display" style="color: #27ae60; font-size: 16px;">${cand.S.toFixed(1)} <span style="font-size:10px;">x10³</span></td></tr>
+                                <tr><td style="font-weight: bold; background: #f8f9fa;">VITESSE (Vg)</td><td class="digital-display" style="color: #27ae60; font-size: 16px;">${cand.vg.toFixed(2)} <span style="font-size:10px;">mouv</span></td></tr>
+                                <tr><td style="font-weight: bold; background: #f8f9fa;">AIR SPÉCIFIQUE</td><td class="digital-display" style="color: #fff; font-size: 16px;">${cand.spec_air.toFixed(2)} <span style="font-size:10px;">Nm³/kg</span></td></tr>
+                                <tr><td style="font-weight: bold; background: #f8f9fa;">TEMPÉRATURE MOY.</td><td class="digital-display" style="color: #fff; font-size: 16px;">${cand.t_out.toFixed(1)} <span style="font-size:10px;">°C</span></td></tr>
+                                <tr><td style="font-weight: bold; background: #f8f9fa;">COÛT SPÉCIFIQUE</td><td class="digital-display" style="color: #f39c12; font-size: 16px;">${cand.spec_cost.toFixed(2)} <span style="font-size:10px;">MAD/t</span></td></tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn-hmi" onclick="applyAutotuneCandidate(${index})" style="background-color: ${isTop ? '#2980b9' : '#ecf0f1'}; color: ${isTop ? 'white' : '#2c3e50'}; border-color: ${isTop ? '#2980b9' : '#bdc3c7'}; width: 100%;">
+                            APPLIQUER CETTE CONFIGURATION
+                        </button>
+                    </div>
+                </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function applyAutotuneCandidate(index) {
+            if(!autotuneCandidates || !autotuneCandidates[index]) return;
+            let cand = autotuneCandidates[index];
+            document.getElementById('in_s').value = cand.S.toFixed(0); document.getElementById('slide_s').value = cand.S.toFixed(0);
+            document.getElementById('in_vg').value = cand.vg.toFixed(1); document.getElementById('slide_vg').value = cand.vg.toFixed(1);
+            switchTab('dashboard'); 
+            evaluateDecision();     
+        }
+
+        function renderAutotuneHeatmap(heatmapData, heatmapTempData, bestPoint) {
+            let x = heatmapData.map(pt => pt.x);
+            let y = heatmapData.map(pt => pt.y);
+            let z = heatmapData.map(pt => pt.cost);
+            let zT = heatmapTempData.map(pt => pt.temp);
+
+            let uniqueX = [...new Set(x)];
+            let uniqueY = [...new Set(y)];
+            let is1D = (uniqueX.length < 2 || uniqueY.length < 2);
+
+            let tempMin = parseFloat(document.getElementById('auto_temp_min').value);
+            let tempMax = parseFloat(document.getElementById('auto_temp_max').value);
+
+            var traceCost, traceTemp, traceConstraintMin, traceConstraintMax;
+
+            if (is1D) {
+                traceCost = {
+                    x: x, y: y, mode: 'markers+lines', type: 'scatter',
+                    marker: { color: z, colorscale: 'Jet', reversescale: true, size: 12, colorbar: { title: 'MAD/t', titleside: 'right' } },
+                    line: { color: '#888', width: 2 }
+                };
+                traceTemp = {
+                    x: x, y: y, mode: 'markers+lines', type: 'scatter',
+                    marker: { color: zT, colorscale: 'RdBu', reversescale: true, size: 12, colorbar: { title: '°C', titleside: 'right' } },
+                    line: { color: '#888', width: 2 }
+                };
+            } else {
+                traceCost = {
+                    x: x, y: y, z: z, type: 'contour', colorscale: 'Jet', reversescale: true,
+                    contours: { coloring: 'heatmap', showlabels: true, labelfont: { family: 'Roboto Mono', size: 10, color: 'white' } },
+                    colorbar: { title: 'MAD/t', titleside: 'right' }
+                };
+                traceTemp = {
+                    x: x, y: y, z: zT, type: 'contour', colorscale: 'RdBu', reversescale: true,
+                    contours: { coloring: 'heatmap', showlabels: true, labelfont: { family: 'Roboto Mono', size: 10, color: 'white' } },
+                    colorbar: { title: '°C', titleside: 'right' }
+                };
+
+                traceConstraintMin = {
+                    x: x, y: y, z: zT, type: 'contour', showscale: false, hoverinfo: 'none',
+                    contours: { type: 'constraint', operation: '>', value: tempMin },
+                    fillcolor: 'rgba(46, 204, 113, 0.3)', line: { color: 'rgba(39, 174, 96, 1)', width: 2 }
+                };
+                traceConstraintMax = {
+                    x: x, y: y, z: zT, type: 'contour', showscale: false, hoverinfo: 'none',
+                    contours: { type: 'constraint', operation: '<', value: tempMax },
+                    fillcolor: 'rgba(46, 204, 113, 0.3)', line: { color: 'rgba(39, 174, 96, 1)', width: 2 }
+                };
+            }
+
+            var traceTarget = {
+                x: [bestPoint.S], y: [bestPoint.vg], mode: 'markers', type: 'scatter',
+                marker: { color: '#000', size: 14, symbol: 'cross', line: {color: '#000', width: 2} },
+                name: 'Cible'
+            };
+
+            var layoutCost = {
+                margin: { t: 10, b: 40, l: 40, r: 10 },
+                xaxis: { title: 'S (x10³ Nm³/h)', font: { size: 10, weight: 'bold', color: '#555' } },
+                yaxis: { title: 'Vg (mouv/min)', font: { size: 10, weight: 'bold', color: '#555' } },
+                showlegend: false, plot_bgcolor: '#ecf0f1', paper_bgcolor: '#fff'
+            };
+            
+            var layoutTemp = {
+                margin: { t: 10, b: 40, l: 40, r: 10 },
+                xaxis: { title: 'S (x10³ Nm³/h)', font: { size: 10, weight: 'bold', color: '#555' } },
+                yaxis: { title: 'Vg (mouv/min)', font: { size: 10, weight: 'bold', color: '#555' } },
+                showlegend: false, plot_bgcolor: '#ecf0f1', paper_bgcolor: '#fff'
+            };
+
+            Plotly.newPlot('autotuneHeatmap', [traceCost, traceTarget], layoutCost, {responsive: true});
+            
+            if (!is1D && tempMax > 0) {
+                Plotly.newPlot('autotuneTempHeatmap', [traceTemp, traceConstraintMin, traceConstraintMax, traceTarget], layoutTemp, {responsive: true});
+            } else {
+                Plotly.newPlot('autotuneTempHeatmap', [traceTemp, traceTarget], layoutTemp, {responsive: true});
+            }
+        }
+        
+        function renderTradeoffScatter(scatterData, bestPoint) {
+            let sortedData = [...scatterData].sort((a,b) => a.t_out - b.t_out);
+            let x = sortedData.map(pt => pt.t_out);
+            let y = sortedData.map(pt => pt.spec_cost);
+            let z = sortedData.map(pt => pt.spec_cost); 
+            
+            let paretoX = [];
+            let paretoY = [];
+            let currentMinCost = Infinity;
+            for(let pt of sortedData) {
+                if(pt.spec_cost < currentMinCost) {
+                    paretoX.push(pt.t_out);
+                    paretoY.push(pt.spec_cost);
+                    currentMinCost = pt.spec_cost;
+                }
+            }
+            
+            var traceScatter = {
+                x: x, y: y, mode: 'markers', type: 'scatter',
+                marker: { color: z, colorscale: 'Jet', reversescale: true, size: 6, opacity: 0.7 },
+            };
+            
+            var tracePareto = {
+                x: paretoX, y: paretoY, mode: 'lines', type: 'scatter',
+                line: {color: 'rgba(44, 62, 80, 0.8)', width: 2, dash: 'dash'}, name: 'Front de Pareto'
+            };
+            
+            var traceTarget = {
+                x: [bestPoint.t_out], y: [bestPoint.spec_cost], mode: 'markers', type: 'scatter',
+                marker: { color: '#000', size: 14, symbol: 'cross', line: {color: '#f1c40f', width: 2} }
+            };
+            
+            var layout = {
+                margin: { t: 10, b: 40, l: 40, r: 10 },
+                xaxis: { title: 'Température Sortie (°C)', font: { size: 11, weight: 'bold', color: '#555' } },
+                yaxis: { title: 'Coût Spécifique (MAD/t)', font: { size: 11, weight: 'bold', color: '#555' } },
+                showlegend: false, plot_bgcolor: '#ecf0f1', paper_bgcolor: '#fff'
+            };
+            Plotly.newPlot('tradeoffScatterPlot', [traceScatter, tracePareto, traceTarget], layout, {responsive: true});
+        }
+
+        function applyContourFilter() {
+            if (!lastHeatmapData || !lastHeatmapTempData) return;
+            
+            let minVal = parseFloat(document.getElementById('contour_min').value);
+            let maxVal = parseFloat(document.getElementById('contour_max').value);
+            if (isNaN(minVal)) minVal = -Infinity;
+            if (isNaN(maxVal)) maxVal = Infinity;
+
+            let filteredData = lastHeatmapData.map(pt => {
+                return { x: pt.x, y: pt.y, cost: (pt.cost >= minVal && pt.cost <= maxVal) ? pt.cost : null };
+            });
+            
+            renderAutotuneHeatmap(filteredData, lastHeatmapTempData, lastBestPoint);
+        }
+
+        function resetContourFilter() {
+            if (!lastHeatmapData) return;
+            let costs = lastHeatmapData.map(d => d.cost).filter(c => c !== null);
+            document.getElementById('contour_min').value = Math.floor(Math.min(...costs));
+            document.getElementById('contour_max').value = Math.ceil(Math.max(...costs));
+            renderAutotuneHeatmap(lastHeatmapData, lastHeatmapTempData, lastBestPoint);
+        }
+
+        async function generateSmartReport() {
+            const btn = document.getElementById('btn_generate_report');
+            const status = document.getElementById('report_status');
+            
+            btn.disabled = true; btn.style.opacity = 0.5; status.style.display = 'block';
+
+            try {
+                if (!autotuneCandidates || autotuneCandidates.length === 0) {
+                    status.innerText = "Étape 1/2: Recherche de l'Optimum Robuste (Grid Search)...";
+                    await runAutotune();
+                }
+
+                status.innerText = "Étape 2/2: Compilation LaTeX Haute Définition...";
+
+                document.getElementById('pdf_date').innerText = 'Généré le : ' + new Date().toLocaleString('fr-FR');
+                document.getElementById('pdf_in_m').innerText = document.getElementById('in_m').value + " t/h";
+                document.getElementById('pdf_in_s').innerText = document.getElementById('in_s').value + " x10³ Nm³/h";
+                document.getElementById('pdf_in_vg').innerText = document.getElementById('in_vg').value + " mouv/min";
+                document.getElementById('pdf_out_temp').innerText = document.getElementById('out_temp').innerText + " °C";
+                document.getElementById('pdf_out_air').innerText = document.getElementById('out_air_spec').innerText + " Nm³/kg";
+                document.getElementById('pdf_out_spec').innerText = document.getElementById('out_cost_spec').innerText + " MAD/t";
+
+                const mcTableRows = document.getElementById('mc-tbody').querySelectorAll('tr');
+                if (mcTableRows.length >= 5) {
+                    document.getElementById('pdf_mc_elec_mean').innerText = mcTableRows[1].cells[1].innerText;
+                    document.getElementById('pdf_mc_elec_iqr').innerText = mcTableRows[1].cells[2].innerText;
+                    document.getElementById('pdf_mc_elec_p95').innerText = mcTableRows[1].cells[4].innerText;
+                    
+                    document.getElementById('pdf_mc_maint_mean').innerText = mcTableRows[2].cells[1].innerText;
+                    document.getElementById('pdf_mc_maint_iqr').innerText = mcTableRows[2].cells[2].innerText;
+                    document.getElementById('pdf_mc_maint_p95').innerText = mcTableRows[2].cells[4].innerText;
+                    
+                    document.getElementById('pdf_mc_total_mean').innerText = mcTableRows[3].cells[1].innerText;
+                    document.getElementById('pdf_mc_total_iqr').innerText = mcTableRows[3].cells[2].innerText;
+                    document.getElementById('pdf_mc_total_p95').innerText = mcTableRows[3].cells[4].innerText;
+
+                    document.getElementById('pdf_mc_spec_mean').innerText = mcTableRows[4].cells[1].innerText;
+                    document.getElementById('pdf_mc_spec_iqr').innerText = mcTableRows[4].cells[2].innerText;
+                    document.getElementById('pdf_mc_spec_p95').innerText = mcTableRows[4].cells[4].innerText;
+                }
+
+                const tbodyPdf = document.getElementById('pdf_opt_table_body');
+                tbodyPdf.innerHTML = '';
+                autotuneCandidates.forEach((cand, idx) => {
+                    let isTop = idx === 0;
+                    let styleStr = isTop ? 'font-weight: bold; background-color: #f4f6f7;' : '';
+                    tbodyPdf.innerHTML += `
+                    <tr style="page-break-inside: avoid; ${styleStr}">
+                        <td style="padding: 6px; border-bottom: 1px solid #ddd; color: black;">#${idx + 1} ${isTop?'(Optimum)':''}</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #ddd; font-family: monospace; color: black;">${cand.S.toFixed(0)}</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #ddd; font-family: monospace; color: black;">${cand.vg.toFixed(1)}</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #ddd; font-family: monospace; color: black;">${cand.spec_air.toFixed(2)}</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #ddd; font-family: monospace; color: black;">${cand.t_out.toFixed(0)} °C</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #ddd; font-family: monospace; font-weight: bold; color: black;">${cand.spec_cost.toFixed(2)} MAD/t</td>
+                    </tr>`;
+                });
+
+                const currentCostStr = document.getElementById('pdf_mc_total_mean').innerText;
+                const currentCost = parseFloat(currentCostStr.replace(/[^0-9.-]+/g,"")) || 0; 
+                const optCost = autotuneCandidates[0].mc_mean_cost;
+                const hourlyGain = currentCost - optCost;
+                
+                let conclusionText = "";
+                if (hourlyGain > 0) {
+                    conclusionText = `L'application des réglages optimaux recommandés ($S = ${autotuneCandidates[0].S.toFixed(0)}$, $v_g = ${autotuneCandidates[0].vg.toFixed(1)}$) permettrait une réduction théorique des coûts d'exploitation de <strong style="color: black;">${hourlyGain.toFixed(0)} MAD par heure</strong> par rapport au point de consigne actuel évalué stochastiquement. Ces réglages maintiennent le risque thermique en dessous du seuil critique d'Arrhenius et respectent la contrainte d'air spécifique ciblé à ${autotuneCandidates[0].spec_air.toFixed(2)} Nm³/kg.`;
+                } else {
+                    conclusionText = "Le système opère actuellement dans une zone financièrement et thermiquement optimale. Aucune modification du ratio Soufflage/Vitesse n'est mathématiquement recommandée à cet instant selon l'ensemble d'Intelligence Artificielle.";
+                }
+                document.getElementById('pdf_conclusion').innerHTML = conclusionText;
+
+                const element = document.getElementById('pdf-report-template');
+                element.style.display = 'block'; 
+                
+                const opt = {
+                    margin:       0,
+                    filename:     `Audit_Clinker_Expert_${new Date().toISOString().slice(0,10)}.pdf`,
+                    image:        { type: 'jpeg', quality: 1.0 },
+                    html2canvas:  { scale: 4, useCORS: true, letterRendering: true }, 
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                await html2pdf().set(opt).from(element).save();
+                
+                element.style.display = 'none';
+                status.innerText = "Rapport PDF généré avec succès !";
+                status.style.color = "#27ae60";
+
+            } catch (error) {
+                console.error("Erreur génération PDF", error);
+                status.innerText = "Erreur lors de la génération. Vérifiez la console.";
+                status.style.color = "#e74c3c";
+            } finally {
+                setTimeout(() => { btn.disabled = false; btn.style.opacity = 1; status.style.display = 'none'; }, 3000);
+            }
+        }
+        
+        function optimizeZoomRegion() {
+            const graph = document.getElementById('autotuneHeatmap');
+            if (!graph || !graph.layout || !graph.layout.xaxis || !graph.layout.yaxis || !graph.layout.xaxis.range || !graph.layout.yaxis.range) {
+                alert("Veuillez d'abord zoomer sur une zone spécifique du graphique en dessinant un rectangle avec votre souris !");
+                return;
+            }
+
+            let xRange = graph.layout.xaxis.range;
+            let yRange = graph.layout.yaxis.range;
+
+            let sMin = Math.max(0, Math.min(xRange[0], xRange[1]));
+            let sMax = Math.min(601, Math.max(xRange[0], xRange[1]));
+            let vgMin = Math.max(0, Math.min(yRange[0], yRange[1]));
+            let vgMax = Math.min(30, Math.max(yRange[0], yRange[1]));
+
+            document.getElementById('auto_s_min').value = sMin.toFixed(0);
+            document.getElementById('auto_s_max').value = sMax.toFixed(0);
+            document.getElementById('auto_vg_min').value = vgMin.toFixed(1);
+            document.getElementById('auto_vg_max').value = vgMax.toFixed(1);
+
+            document.getElementById('auto_s_lock').checked = false;
+            document.getElementById('auto_vg_lock').checked = false;
+            toggleAutoLock('s');
+            toggleAutoLock('vg');
+
+            document.getElementById('view-autotune').scrollIntoView({ behavior: 'smooth' });
+            runAutotune();
+        }
+        
+        function resetOptimizationConstraints() {
+            document.getElementById('auto_s_min').value = 0;
+            document.getElementById('auto_s_max').value = 601;
+            document.getElementById('auto_s_val').value = 300;
+            document.getElementById('auto_s_lock').checked = false;
+            toggleAutoLock('s'); 
+
+            document.getElementById('auto_vg_min').value = 0;
+            document.getElementById('auto_vg_max').value = 30;
+            document.getElementById('auto_vg_val').value = 15;
+            document.getElementById('auto_vg_lock').checked = false;
+            toggleAutoLock('vg');
+            
+            document.getElementById('auto_air_min').value = 1.5;
+            document.getElementById('auto_air_max').value = 3.5;
+            document.getElementById('auto_temp_min').value = 25;
+            document.getElementById('auto_temp_max').value = 200;
+
+            document.getElementById('auto_w_mean').value = 1.0;
+            document.getElementById('auto_w_risk').value = 0.0;
+            
+            const statusEl = document.getElementById('autotune_status');
+            statusEl.innerText = "Limites réinitialisées. Prêt pour l'Autotune.";
+            statusEl.style.color = "#27ae60";
         }
     </script>
 </body>
