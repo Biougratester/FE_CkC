@@ -1675,7 +1675,7 @@
         function resetOptimizationConstraints() {
             document.getElementById('auto_s_min').value = 0;
             document.getElementById('auto_s_max').value = 601;
-            document.getElementById('auto_s_val').value = 300;
+            document.getElementById('auto_s_val').value = 420;
             document.getElementById('auto_s_lock').checked = false;
             toggleAutoLock('s'); 
 
@@ -1685,13 +1685,13 @@
             document.getElementById('auto_vg_lock').checked = false;
             toggleAutoLock('vg');
             
-            document.getElementById('auto_air_min').value = 1.5;
+            document.getElementById('auto_air_min').value = 0;
             document.getElementById('auto_air_max').value = 3.5;
             document.getElementById('auto_temp_min').value = 25;
             document.getElementById('auto_temp_max').value = 200;
 
             document.getElementById('auto_w_mean').value = 1.0;
-            document.getElementById('auto_w_risk').value = 0.0;
+            document.getElementById('auto_w_risk').value = 1.0;
             
             const statusEl = document.getElementById('autotune_status');
             statusEl.innerText = "Limites réinitialisées. Prêt pour l'Autotune.";
