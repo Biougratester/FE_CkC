@@ -86,14 +86,14 @@
     <div class="hmi-header">
         <div class="logo-container">
             <img src="https://www.cimentsdumaroc.com/sites/default/files/2026-01/CIMAR_LOGO.svg" alt="CIMAR Logo" class="cimar-logo">
-            <div class="tool-title">SYS-CTRL // EXPERT SYSTEM</div>
+            <div class="tool-title">EXPERT SYSTEM // EXTENSION</div>
         </div>
         <button id="mobile-menu-toggle" style="display: none;">MENU NAVIGATION</button>
         <div id="mobile-nav-group">
             <div class="hmi-tabs">
                 <button class="tab-btn active" onclick="switchTab('dashboard')">EVALUATION AVANCEE</button>
-                <button class="tab-btn" onclick="switchTab('autotune'); syncGlobalParams();">OPTIMISATION APC</button>
-                <button class="tab-btn" onclick="switchTab('isotemp')">OUTIL ISO-TEMPERATURE</button>
+                <button class="tab-btn" onclick="switchTab('autotune'); syncGlobalParams();">OPTIMISATION</button>
+                <button class="tab-btn" onclick="switchTab('isotemp')">ISO-TEMPERATURE</button>
                 <button class="tab-btn" onclick="switchTab('config'); loadConfigToForm();">CONFIGURATION SYSTEME</button>
             </div>
             <div class="api-status">
@@ -166,7 +166,7 @@
 
                 <div style="display: flex; flex-direction: column;">
                     <div class="hmi-panel">
-                        <div class="panel-header">PREDICTIONS MULTI-MODELES (IA + PHYSIQUE)</div>
+                        <div class="panel-header">PREDICTIONS MULTI-MODELES</div>
                         <table style="margin-bottom: 10px;">
                             <thead><tr><th>MODELE</th><th>T. SORTIE (C)</th><th>ELEC (MAD)</th><th>MAINT (MAD)</th><th>TOTAL PONDERE</th></tr></thead>
                             <tbody id="multi-model-tbody"><tr><td colspan="5" style="text-align: center;">En attente de donnees...</td></tr></tbody>
